@@ -16,52 +16,75 @@ class BM
   def self.file_name
     return "~/.bm"
   end
+  def self.backup_file_name
+    return BM.file_name + ".bk"
+  end
+
   def self.file_path
     return File.expand_path(BM.file_name)
   end
+  def self.backup_file_path
+    return File.expand_path(BM.backup_file_name)
+  end
 
-  def self.line_separator
+  def self.has_file?
+    if File.file?(BM.file_path) then true else nil end
+  end
+  def self.has_backup_file?
+    if File.file?(BM.backup_file_path) then true else nil end
+  end
+
+  def self.file_empty?
+    if File.zero?(BM.file_path) then true else nil end
+  end
+  def self.backup_file_empty?
+    if File.zero?(BM.backup_file_path) then true else nil end
+  end
+
+  def self.line_sep
     return ""  # The ASCII record separator character.
   end
-  def self.tag_separator
+  def self.tag_sep
     return ""  # The ASCII unit separator character.
-  end
-
-  def self.line_pattern
-    return Regexp.new(BM.line_separator + '.*' + BM.line_separator)
   end
 
   def self.escapes
     return ["`", '"']
   end
 
+  def self.make_backup_file
+    IO.copy_stream(BM.file_path, BM.backup_file_path)
+  end
+  def self.delete_backup_file
+    File.delete(BM.backup_file_path)
+  end
 
-  # The help message. It should be made more helpful. #HERE
+
   def self.help_msg
     ret = <<END
 #{"bm".bold} is a tool for saving and copying bits of text.
 You can use it to save bookmarks, hard-to-remember commands, complex
-emoticons, things like that.
+emoticons, stuff like that.
 
-Say you want to save Wikipedia's page on the Flammarion Engraving.
-You would type:
-bm -n http://en.wikipedia.org/wiki/Flammarion_engraving
+Say you want to save Wikipedia's page on Tardigrades. You would type:
+bm -n https://en.wikipedia.org/wiki/Tardigrade
 
 You can tag text by entering words before the bit you want to save.
-Say you want to tag the Flammarion Engraving URL "wiki" and "art".
-You would type:
+Say you want to tag Wikipedia's page on the Flammarion Engraving
+"wiki" and "art". You would type:
 bm -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
 
-To see all your saved bits, you would type:
+To see all your saves, you would type:
 bm -a
 
-To see all your saved bits tagged "art", you would type:
-bm art
+To see all your saves tagged "music", you would type:
+bm music
 
-If there are more than one lines that match the tag, you'll be shown
-a numbered list of them and prompted for the one you want. The non-
-tag portion of the line will be copied to your clipboard. If there's
-only one match, you'll skip the browsing step.
+If there are more than one saves that match the tag, you'll be shown
+a numbered list of them and prompted for the one you want. The text
+on the numbered line will be copied to your clipboard. Tags will be
+listed beneath the numbered line. And if there's only one match,
+you'll skip the browsing step.
 
 #{"bm".bold} saves your text in a plain text file at #{BM.file_name}, so you can add
 and remove lines or edit values in your editor of choice. But be
@@ -80,18 +103,15 @@ END
   #
 
   def initialize(args = [ ])
-    @filename, @filepath = BM.file_name, BM.file_path
-    @linesep, @tagsep = BM.line_separator, BM.tag_separator
-    @linepattern, @escapes = BM.line_pattern, BM.escapes
-
-    @has_file, @nil_file = self.has_file?, self.nil_file?
+    @has_file, @nil_file = nil, nil
+    self.check_file!
 
     argh = self.parse_args(args)
     @act, @args = argh[:act], argh[:args]
     @lines, @line, @val, argh = [ ], nil, nil, nil
   end
 
-  attr_reader :act, :args, :filename, :filepath, :linesep, :tagsep, :linepattern, :escapes
+  attr_reader :act, :args
   attr_accessor :lines, :line, :val, :has_file, :nil_file
 
 
@@ -121,19 +141,25 @@ END
         ret[:act] = :all
       elsif ((x == "--new") or (x == "-n"))
         ret[:act] = :new
+      elsif ((x == "--delete") or (x == "--del") or (x == "-d"))
+        ret[:act] = :del
         # Could add a -e flag for editing? #HERE.
-        # And one for deleting?
       elsif (x.match(/-.*?/))
         ret[:act] = :err
       else
         ret[:act] = :filt
       end
 
-      if ((ret[:act] == :new) or (ret[:act] == :all) or (ret[:act] == :filt))
-        args.delete_at(0) if ((ret[:act] == :new) or (ret[:act] == :all))
+      # These do not want the first argument.
+      if ((ret[:act] == :all) or (ret[:act] == :new) or (ret[:act] == :del))
+        args.delete_at(0)
+      end
+
+      # These want the arguments.
+      if ((ret[:act] == :filt) or (ret[:act] == :new) or (ret[:act] == :del))
         ret[:args] = args
       end
-      # Unless filtering or showing all, the arguments are discarded.
+      # Unless deleting, filtering, or showing all, the arguments are discarded.
     end
 
     return ret
@@ -141,17 +167,8 @@ END
 
 
 
-
-  def has_file?
-    if File.file?(self.filepath) then true else nil end
-  end
-
-  def nil_file?
-    if File.zero?(self.filepath) then true else nil end
-  end
-
   def check_file!
-    self.has_file, self.nil_file = self.has_file?, self.nil_file?
+    self.has_file, self.nil_file = BM.has_file?, BM.file_empty?
   end
 
 
@@ -169,8 +186,12 @@ END
     elsif (self.act == :new)
       ret = self.new_line
 
-    elsif ((self.act == :filt) or (self.act == :all))
+    elsif ((self.act == :filt) or
+           (self.act == :all))
       ret = self.cull_lines
+
+    elsif (self.act == :del)
+      ret = self.delete_lines
 
     elsif (self.act == :err)
       ret = self.out_msg(:argsbad)
@@ -188,8 +209,6 @@ END
 
   # When the action is init, main calls this.
   def init_file
-    self.check_file!
-
     if self.has_file
       if self.nil_file
         ret = self.out_msg(:fileempty)
@@ -197,7 +216,7 @@ END
         ret = self.out_msg(:fileexists)
       end
     else
-      if self.make_file!
+      if self.make_file
         ret = self.out_msg(:init)
       else
         ret = self.out_msg(:filefail)
@@ -210,17 +229,10 @@ END
 
 
 
-  # Creates the file.
-  def make_file!
-    if self.has_file
-      ret = nil
-    else
-      f = File.new(self.filepath, 'w+', 0600)
-      self.check_file!  # Updates the @has_file and @nil_file bools.
-      ret = self.has_file
-    end
-
-    return ret
+  def make_file
+    f = File.new(BM.file_path, 'w+', 0600)
+    self.check_file!  # Updates the @has_file and @nil_file bools.
+    return self.has_file
   end
 
 
@@ -234,7 +246,8 @@ END
 
     else
       ret = (self.has_file) ? "\n" : self.init_file
-      self.line, self.val = self.line_from_args, self.args.last
+      self.line_from_args!
+      self.chop_val!
 
       if self.write_line
         ret << "\n" + self.out_msg(:saveok)
@@ -259,11 +272,11 @@ END
     ret = nil
 
     if self.has_file
-      fh = File.open(self.filepath, 'a+')
+      fh = File.open(BM.file_path, 'a+')
       if self.nil_file
-        fh.puts self.escape(str)
+        fh.puts str
       else
-        fh.puts self.linesep + self.escape(str)
+        fh.puts BM.line_sep + "\n" + str
       end
       fh.close
       ret = true
@@ -274,11 +287,18 @@ END
 
 
 
-  def line_from_args(arr = self.args)
+  def write_lines(lines = self.lines)
     ret = nil
 
-    if arr.is_a? Array
-      ret = (arr.empty?) ? nil : arr.join(self.tagsep)
+    if self.has_file
+      fh, n, m = File.open(BM.file_path, 'w'), 0, lines.length
+      lines.each do |line|
+        fh.puts line  # The escape is unnecessary.
+        n += 1
+        fh.puts BM.line_sep if (n < m)
+      end
+      fh.close
+      ret = true
     end
 
     return ret
@@ -287,16 +307,35 @@ END
 
 
 
+  def line_from_args!(arr = self.args)
+    ret = nil
 
-  # This strips slashes and separators and such for pretty printing.
-  def beautify(str = self.line)
-    str = str.gsub(self.linesep, '').gsub(self.tagsep, ' : ')
-    return self.clean(str)
+    if arr.is_a? Array
+      ret = (arr.empty?) ? nil : self.escape(arr.join(BM.tag_sep))
+    end
+
+    self.line = ret
+    return self.line
   end
+
+
+
+
+  def line_to_parts(str = self.line)
+    ret = { :val => '', :tags => [ ] }
+
+    arr = str.gsub(BM.line_sep, '').split(BM.tag_sep)
+    ret[:val] = arr.pop
+    ret[:tags] = arr
+
+    return ret
+  end
+
+
 
   def escape(str = self.line)
     ret = str
-    self.escapes.each do |esc|
+    BM.escapes.each do |esc|
       ret = ret.gsub(esc){ "\\#{esc}" }
     end
     return ret
@@ -304,7 +343,7 @@ END
 
   def clean(str = self.line)
     ret = str
-    self.escapes.each do |esc|
+    BM.escapes.each do |esc|
       ret = ret.gsub("\\#{esc}"){ esc }
     end
     return ret
@@ -313,29 +352,18 @@ END
 
 
 
-
   # When the action is to cull a line, main calls this.
   def cull_lines
-    self.read_lines
+    self.read_lines!
 
     if self.lines.empty?
-      if self.has_file
-        if self.nil_file
-          ret = self.out_msg(:fileempty)
-        elsif self.args.empty?
-          ret = self.out_msg(:linesno)
-        else
-          ret = self.out_msg(:matchno)
-        end
-      else
-        ret = self.out_msg(:fileno)
-      end
+      ret = self.why_no_lines?
     else
-      self.get_wanted_line
+      self.get_wanted_line!
       if self.line.nil?
         ret = self.out_msg(:valnah)
       else
-        self.chop_val
+        self.chop_val!
         if (self.val.nil?)
           ret = self.out_msg(:valno)
         else
@@ -355,25 +383,87 @@ END
 
 
 
+  # When the action is to delete a line, main calls this.
+  def delete_lines
+    self.read_lines!
+
+    if self.lines.empty?
+      ret = self.why_no_lines?
+    else
+      self.get_wanted_line!
+      if self.line.nil?
+        ret = self.out_msg(:delnah)
+      else
+        self.chop_val!
+        self.read_lines!([ ])  # Reads the whole file.
+        self.remove_line!
+        BM.make_backup_file
+        if self.write_lines
+          BM.delete_backup_file
+          ret = self.out_msg(:delok, self.clean(self.val))
+        else
+          ret = self.out_msg(:delfail, true)
+        end
+      end
+    end
+
+    return ret
+  end
+
+
+
+
+  def remove_line!(line = self.line, lines = self.lines)
+    ret = [ ]
+    lines.each { |chk| ret.push(chk) if !chk.eql?(line) }
+    self.lines = ret
+    return ret
+  end
+
+
+
+
+  # Provides a reason why there are no lines.
+  # Mostly here because the same block would be used in multiple methods.
+  def why_no_lines?
+    if self.has_file
+      if self.nil_file
+        ret = self.out_msg(:fileempty)
+      elsif self.args.empty?
+        ret = self.out_msg(:linesno)
+      else
+        ret = self.out_msg(:matchno)
+      end
+    else
+      ret = self.out_msg(:fileno)
+    end
+
+    return ret
+  end
+
+
+
+
   # Reads the file.
   # Filters lines from the file that match the @args.
   # Fills in the @lines array.
-  def read_lines(filts = self.args)
+  def read_lines!(filts = self.args)
     ret = [ ]
 
-    self.check_file!
     if ((self.has_file) and (!self.nil_file))
-      fh = File.open(self.filepath, 'r')
+      fh = File.open(BM.file_path, 'r')
 
       if filts.empty?
-        while line = fh.gets(self.linesep)
-          l = line.chomp(self.linesep).strip
+        while line = fh.gets(BM.line_sep)
+          l = line.chomp(BM.line_sep).strip
           ret.push(l) if !l.empty?
         end
 
       else
-        while line = fh.gets(self.linesep)
-          line = line.chomp(self.linesep).strip
+        # Because they're stored escaped.
+        filts.collect! { |filt| self.escape(filt) }
+        while line = fh.gets(BM.line_sep)
+          line = line.chomp(BM.line_sep).strip
           if !line.empty?
             cmp, good = line.downcase, nil
             filts.each do |filt|
@@ -387,24 +477,29 @@ END
       fh.close
     end
 
+    # This sorting sucks. #HERE
     ret = ret.uniq.sort if (!ret.empty?)
     self.lines = ret
+    return self.lines
   end
 
 
 
 
-  def get_wanted_line
+  def get_wanted_line!
     if self.lines.empty?
-      self.line = nil
+      ret = nil
     else
       # If only one line matches, skip the browsing step.
       if ((self.act == :filt) and (self.lines.count == 1))
-        self.line = self.lines[0]
+        ret = self.lines[0]
       else
-        self.line = self.which_line?
+        ret = self.which_line?
       end
     end
+
+    self.line = ret
+    return self.line
   end
 
 
@@ -421,9 +516,15 @@ END
     n, x = 1, self.lines.count.to_s.length
 
     self.lines.each do |line|
+      parts = self.line_to_parts(line)
       y = x - n.to_s.length
-      y.times { print ' ' } if (y > 0)
-      puts "#{n}) #{self.beautify(line)}"
+      spc = (y > 0) ? (' ' * y) : ''
+      pre = "#{spc}#{n})"
+      puts "#{pre} #{self.clean(parts[:val])}"
+      if !parts[:tags].empty?
+        spc = ' ' * (pre.length)
+        puts "#{spc} Tags: #{self.clean(parts[:tags].join(', '))}"
+      end
       n += 1
     end
   end
@@ -453,15 +554,16 @@ END
 
 
   # This parses the value field from the given line.
-  def chop_val(str = self.line)
-    ret = nil
+  def chop_val!
+    ret, str = nil, self.line
 
     if str.is_a? String
-      ret = (str.include? self.tagsep) ? str.split(self.tagsep).last : str
-      ret = self.clean(ret.strip)
+      ret = (str.include? BM.tag_sep) ? str.split(BM.tag_sep).last : str
+      ret = ret.strip
     end
 
     self.val = ret
+    return self.val
   end
 
 
@@ -470,13 +572,13 @@ END
   def copy_val(str = self.val)
     return nil if !str.is_a? String
 
-    oks = self.escape(str.gsub(/%/, '%%'))
+    #oks = self.escape(str.gsub(/%/, '%%'))
+    oks = str.gsub(/%/, '%%')
     chk = system("printf \"#{oks}\" | pbcopy")
     ret = (chk) ? true : nil
 
     return ret
   end
-
 
 
 
@@ -491,18 +593,25 @@ END
       ret = "Bad arguments, friendo. Maybe check the help message? \"bm -h\"."
     elsif (x == :argsno)
       ret = "No arguments. Try something like \"bm good stuff\"."
+    elsif (x == :delfail)
+      ret = "Something went wrong with deleting the line."
+      ret << " A backup file was created at \"#{BM.backup_file_name}\"." if v
+    elsif (x == :delnah)
+      ret = "Nevermind? Okay."
+    elsif (x == :delok)
+      ret = (v.nil?) ? "Consider it gone." : "Deleted \"#{v}\"."
     elsif (x == :fileempty)
-      ret = "#{self.filename} is empty. You can add lines with \"bm -n what ever\"."
+      ret = "#{BM.file_name} is empty. You can add lines with \"bm -n what ever\"."
     elsif (x == :fileexists)
-      ret = "#{self.filename} already exists."
+      ret = "#{BM.file_name} already exists."
     elsif (x == :filefail)
-      ret = "Failed to create #{self.filename} :("
+      ret = "Failed to create #{BM.file_name} :("
     elsif (x == :fileno)
-      ret = "Can't read #{self.filename} because it doesn't exist. Run \"bm -i\"?"
+      ret = "Can't read #{BM.file_name} because it doesn't exist. Run \"bm -i\"?"
     elsif (x == :init)
-      ret = "Created #{self.filename}."
+      ret = "Created #{BM.file_name}."
     elsif (x == :linesno)
-      ret = "#{self.filename} has no valid lines."
+      ret = "#{BM.file_name} has no valid lines."
     elsif (x == :matchno)
       ret = "No lines match."
     elsif (x == :pipefail)
