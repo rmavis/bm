@@ -89,16 +89,17 @@ class BM
     $ bm -n https://en.wikipedia.org/wiki/Tardigrade
 
   Then, when you want to read about those awesome weird animals again,
-  you can type
+  you can type:
     $ bm Tardigrade
-  and, assuming you haven't saved anything else that includes the word
-  "Tardigrade", #{"bm".syscmd} will copy the URL to your clipboard. Or you can type
+  And, assuming you haven't saved anything else that includes the word
+  "Tardigrade", #{"bm".syscmd} will copy the URL to your clipboard. Or you can type:
     $ bm -o Tardigrade
   and the URL will be opened in your default browser.
 
   To help with retrieving things later, you can tag can your saves by
-  entering words before the bit you want to save. So say you want to tag
-  Wikipedia's page on the Flammarion Engraving "wiki" and "art":
+  entering words before the value you want to copy or open. So say you
+  want to tag Wikipedia's page on the Flammarion Engraving with "wiki"
+  and "art":
     $ bm -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
 
   To see all your saves tagged "wiki":
@@ -220,18 +221,18 @@ END
 #{"Extra".header}
   If you feel list customizing #{"bm".syscmd}, there are three class methods toward
   the top of the file that you can change:
-    1. The file name, #{BM.file_name}, is specified in self.file_name
+    1. The file name, #{BM.file_name}, is specified in BM::file_name
        If you change this, make sure you have write privileges.
-    2. The default filter mode is specified in self.default_filter_mode
+    2. The default filter mode is specified in BM::default_filter_mode
        The value should be a symbol, either :strict or :loose
-    3. The default system action is specified in self.default_pipe_to
+    3. The default system action is specified in BM::default_pipe_to
        The value should be a symbol, either :copy or :open
 
   #{"bm".syscmd} uses the non-printing ASCII record and unit separator characters
   when saving your data. The record separator separates each "line". Each
   line holds the value that will be copied or opened along with any tags.
   If there are tags, they will be separated from the value and from each
-  other by the unit separator. The value is the last slot in that string.
+  other by the unit separator. The value is the last slot in that line.
   Something like this:
     https://en.wikipedia.org/wiki/Tardigrade
     #{"^^".red}
@@ -240,8 +241,8 @@ END
     wiki#{"^_".red}art#{"^_".red}http://en.wikipedia.org/wiki/Flammarion_engraving
 
   So if you want to edit the file in your editor of choice, beware that
-  your editor might not display those characters. In #{"emacs".syscmd}, you can enter
-  the record separator with:
+  your editor might not display those characters, or might display them
+  weirdly. In #{"emacs".syscmd}, you can enter the record separator with:
     C-q 036 <RET>
   And the unit separator with:
     C-q 037 <RET>
