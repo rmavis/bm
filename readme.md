@@ -10,7 +10,7 @@ Then, when you want to read about those awesome weird animals again, you can typ
 
 	$ bm Tardigrade
 
-And, assuming you haven't saved anything else that includes the word "Tardigrade", bm will copy the URL to your clipboard. Or you can type:
+And, assuming you haven't saved anything else that includes the word "Tardigrade", `bm` will copy the URL to your clipboard. Or you can type:
 
 	$ bm -o Tardigrade
 
@@ -32,7 +32,7 @@ To see all your saves tagged either "wiki" or "art":
 
 	$ bm -l wiki art
 
-If there are more than one saves that match the tags, then you'll be shown a numbered list of them and prompted for the one you want. The text on the numbered line will be copied to your clipboard. Tags will be listed beneath the numbered line. And if there's only one match, you'll skip the browsing step.
+If there are more than one saves that match the tags, then you'll be shown a numbered list of them and prompted for the one you want. The text on the numbered line will be copied to your clipboard. Tags will be listed beneath the numbered line. And if there's only one match, you'll skip the browsing step. You can see some examples [here][rfmbm].
 
 `bm` saves your text in a plain text file at ~/.bm, so you can add, edit, and remove values in your editor of choice. You can also delete values with:
 
@@ -48,13 +48,13 @@ And to run a little demo:
 
 
 
-## Extra
+## And more
 
 If you feel list customizing `bm`, there are three class methods toward the top of the file that you can change:
 
-1. The file name, ~/.bm, is specified in BM::file_name. If you change this, make sure you have write privileges.
-2. The default filter mode is specified in BM::default_filter_mode. The value should be a symbol, either `:strict` or `:loose`.
-3. The default system action is specified in BM::default_pipe_to. The value should be a symbol, either `:copy` or `:open`.
+1. The file name, ~/.bm, is specified in `BM::file_name`. If you change this, make sure you have write privileges.
+2. The default filter mode is specified in `BM::default_filter_mode`. The value should be a symbol, either `:strict` or `:loose`.
+3. The default system action is specified in `BM::default_pipe_to`. The value should be a symbol, either `:copy` or `:open`.
 
 `bm` uses the non-printing ASCII record and unit separator characters when saving your data. The record separator separates each "line". Each line holds the value that will be copied or opened along with any tags. If there are tags, they will be separated from the value and from each other by the unit separator. The value is the last slot in that line. Something like this:
 
@@ -77,3 +77,4 @@ And the unit separator with:
 
 [zh]: http://zachholman.com/
 [boom]: http://zachholman.com/boom/
+[rfmbm]: http://richardmavis.info/bm
