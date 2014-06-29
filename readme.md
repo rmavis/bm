@@ -2,11 +2,13 @@
 
 `bm` is a simple tool for saving and retrieving bits of text. You could use it to save bookmarks, hard-to-remember commands, complex emoticons, stuff like that. It's similar to the most excellent [boom][] by [Zach Holman][zh] but suits me better.
 
+It's a single file and has no external dependencies. Currently it runs only on OS X.
+
 Say you want to save Wikipedia's page on Tardigrades. You would enter:
 
 	$ bm -n https://en.wikipedia.org/wiki/Tardigrade
 
-Then, when you want to read about those awesome weird animals again, you can type:
+Then, when you want to read about those creepy cool animals again, you can type:
 
 	$ bm Tardigrade
 

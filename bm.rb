@@ -88,8 +88,8 @@ class BM
   Say you want to save Wikipedia's page on Tardigrades. You would enter:
     $ bm -n https://en.wikipedia.org/wiki/Tardigrade
 
-  Then, when you want to read about those awesome weird animals again,
-  you can type:
+  Then, when you want to read about those creepy cool animals again, you
+  can type:
     $ bm Tardigrade
   And, assuming you haven't saved anything else that includes the word
   "Tardigrade", #{"bm".syscmd} will copy the URL to your clipboard. Or you can type:
@@ -98,8 +98,8 @@ class BM
 
   To help with retrieving things later, you can tag can your saves by
   entering words before the value you want to copy or open. So say you
-  want to tag Wikipedia's page on the Flammarion Engraving with "wiki"
-  and "art":
+  want to save Wikipedia's page on the Flammarion Engraving and tag it
+  "wiki" and "art":
     $ bm -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
 
   To see all your saves tagged "wiki":
