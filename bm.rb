@@ -727,7 +727,11 @@ end
         ret = true
 
       else
-        goodlim = (self.inclusive?) ? 1 : filts.length
+        if self.inclusive?
+          goodlim, loose = 1, true
+        else
+          goodlim, loose = filts.length, nil
+        end
         p, good = self.line_to_parts(line), 0
 
         filts.each do |filt|
@@ -735,7 +739,11 @@ end
             good += 1 if p[:val].downcase.include? filt
           else
             p[:tags].each do |tag|
-              good += 1 if tag.downcase == filt
+              if loose
+                good += 1 if tag.include? filt
+              else
+                good += 1 if tag.downcase == filt
+              end
             end
           end
         end
