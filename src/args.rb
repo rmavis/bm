@@ -3,23 +3,23 @@
 #
 
 
-
 module BM
-  class Args
+  class Args < BM::BM
 
 
-    # Pass this the arguments array (argv) and it will return a
+    # Pass this the arguments array (ARGV) and it will return a
     # hash containing four keys:
     # - :act, indicating the action for the main routine to take
     # - :args, which are the arguments for the specified action
     # - :filtmode, which, if not specified on the command line,
     #    will be the class default
     # - :pipeto, which acts akin to :filtmode
-    def parse_args(args = [ ], demo = nil)
+
+    def self.parse( args = [ ], demo = nil )
       ret = {
         :act => nil, :args => [ ],
-        :pipeto => BM.default_pipe_to,
-        :filtmode => BM.default_filter_mode
+        :pipeto => BM::Config.default_pipe_to,
+        :filtmode => BM::Config.default_filter_mode
       }
 
       # If there are no args, assume help is needed.
@@ -82,10 +82,23 @@ module BM
 
 
 
-    def args_to_filts(args = self.args)
-      # They are escaped because they are stored escaped.
-      args.collect! { |f| self.escape(f).downcase }
-      return args.uniq
+    # This only works with numbers.
+    def self.parse_lines_prompt( str = '' )
+      ret = nil
+
+      if str.is_a? String
+        str = str.gsub(/[^0-9]+/, ' ')
+
+        if str.include(' ')
+          arr = str.strip.split(' ')
+          ret = arr.collect { |n| n.to_i }
+
+        else
+          ret = [str.to_i]
+        end
+      end
+
+      return ret
     end
 
 

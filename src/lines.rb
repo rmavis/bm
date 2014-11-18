@@ -3,27 +3,38 @@
 #
 
 
-
 module BM
-  class Lines
+  class Lines < BM::BM
+
+
+    def initialize
+      @pool, @selection = [ ], [ ]
+    end
+
+    attr_accessor :pool, :selection
+
 
 
     # When the action is to cull a line, main calls this.
-    def cull_lines
-      self.read_lines!
+    def cull
+      self.read!
 
-      if self.lines.empty?
-        ret = self.why_no_lines?
+      if self.pool.empty?
+        ret = self.why_none?
+
       else
-        self.get_wanted_line!
-        if self.line.nil?
-          ret = self.out_msg(:valnah)
+        # After this, self.selection will be nil or an array.
+        self.get_wanted_line   #HERE
+
+        if self.selection.nil?
+          ret = BM::Message.out(:valnah)
         else
-          self.chop_val!
-          if self.val.nil?
-            ret = self.out_msg(:valno)
-          else
-            ret = self.sysact.call
+          self.selection.each do |line|
+            if line.val.nil?
+              ret = BM::Message.out(:valno, line.string)
+            else
+              ret = self.sysact.call(line)
+            end
           end
         end
       end
@@ -33,54 +44,81 @@ module BM
 
 
 
+
     # Reads the file.
     # Filters lines from the file that match the @args.
     # Fills in the @lines array.
-    def read_lines!(filts = self.args)
-      ret = [ ]
 
-      if self.has_file and !self.nil_file
-        filts = (filts.empty?) ? [ ] : self.args_to_filts
-        fh = File.open(self.file_path, 'r')
-        while line = fh.gets(BM.line_sep)
-          line = line.chomp(BM.line_sep).strip
-          ret.push(line) if self.does_line_match?(line, filts)
+    def read!( args = self.args )
+      self.pool = [ ]
+
+      if self.store.has_file and !self.store.nil_file
+        filts = (args.empty?) ? [ ] : self.clean_args(args)
+        incluv = BM::Utils.filter_inclusive?
+
+        fh = File.open(self.store.file_path, 'r')
+        while l_str = fh.gets(BM::Utils.group_sep)
+          l_obj = BM::Line.new(l_str)
+          self.pool.push(l_obj) if l_obj.matches?(filts, incluv)
         end
         fh.close
       end
 
-      self.lines = ret
-      self.sort_lines! if (!ret.empty?)
+      self.sort!
     end
 
 
 
-    def sort_lines!
+    # This functionality #HERE will need to be updated.
+    # The lines should be able to sort on value or metadata.
+    def sort!
       hsh = { }
-      self.lines.each do |line|
-        p = self.line_to_parts(line)
-        hsh[p[:val]] = line
+      self.pool.each do |line|
+        hsh[line.val] = line
       end
 
       ks, arr = hsh.keys.sort, [ ]
       ks.each { |k| arr.push(hsh[k]) }
-      self.lines = arr
+      self.pool = arr
     end
 
 
 
-    def print_lines
-      n, x = 1, self.lines.count.to_s.length
+    def get_wanted_line
+      if self.pool.empty?
+        self.selection = nil
 
-      self.lines.each do |line|
-        parts = self.line_to_parts(line)
+      else
+        # If only one line matches, skip the browsing step.
+        if self.pool.count == 1   # (self.act == :filt)
+          self.selection = [self.pool[0]]
+        else
+          self.selection = self.which_line?
+        end
+      end
+    end
+
+
+
+    def which_line?
+      self.print!
+      ret = self.prompt_for_line
+      return ret
+    end
+
+
+
+    def print!
+      n, x = 1, self.pool.count.to_s.length
+
+      self.pool.each do |line|
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{self.clean(parts[:val])}"
-        if !parts[:tags].empty?
+        puts "#{pre} #{BM::Utils.clean(line.val)}"
+        if !line.tags.empty?
           spc = ' ' * (pre.length)
-          puts "#{spc} Tags: #{self.clean(parts[:tags].join(', '))}"
+          puts "#{spc} Tags: #{BM::Utils.clean(line.tags.join(', '))}"
         end
         n += 1
       end
@@ -88,20 +126,56 @@ module BM
 
 
 
-    def prompt_for_line(inc0 = true)
-      c = (self.lines.count.to_s.length - 1)
+    def prompt_for_line( inc0 = true )
+      c = (self.pool.count.to_s.length - 1)
       spc = (c > 0) ? (' ' * c) : ''
       puts "#{spc}0) None." if inc0
       print "#{spc}?: "
 
-      x = STDIN.gets.chomp().gsub(/[^0-9]+/, '').to_i
-      if (x == 0)
+      x = BM::Args.parse_lines_prompt(STDIN.gets.chomp)
+
+      if x.is_a? Array
+        ret, bads = [ ], [ ]
+
+        x.each do |n|
+          chk = self.get_line_by_number(n)
+
+          if chk.is_a? BM::Line
+            ret.push chk
+          else
+            bads.push n
+          end
+        end
+
+        if !bads.empty?
+          if x.length == 1
+            if x == 0
+              ret = nil
+            else
+              puts "Bad choice. Try again."
+              ret = self.prompt_for_line(nil)
+            end
+          else
+            puts "Skipping entries #{bads.join(', ')."
+          end
+        end
+
+        ret = nil if ret.empty?
+
+      else  # This will only happen if x isn't a String.
         ret = nil
-      elsif (x <= self.lines.count)
-        ret = self.lines[(x - 1)]
+      end
+
+      return ret
+    end
+
+
+
+    def get_line_by_number( n = 0 )
+      if (n > 0) and (n <= self.pool.count)
+        ret = self.pool[(n - 1)]
       else
-        puts "Bad choice. Try again."
-        ret = self.prompt_for_line(nil)
+        ret = nil
       end
 
       return ret
@@ -113,11 +187,11 @@ module BM
       ret = nil
 
       if self.has_file
-        fh, n, m = File.open(self.file_path, 'w'), 0, self.lines.length
-        self.lines.each do |line|
+        fh, n, m = File.open(self.file_path, 'w'), 0, self.pool.length
+        self.pool.each do |line|
           fh.puts line
           n += 1
-          fh.puts BM.line_sep if (n < m)
+          fh.puts BM::Utils.rec_sep if (n < m)
         end
         fh.close
         self.check_file!
@@ -130,27 +204,35 @@ module BM
 
 
     def remove_line_from_lines!
-      self.lines.delete self.line
+      self.pool.delete self.selection
     end
 
 
 
     # Provides a reason why there are no lines.
     # Mostly here because the same block would be used in multiple methods.
-    def why_no_lines?
-      if self.has_file
-        if self.nil_file
-          ret = self.out_msg(:fileempty)
+    def why_none?
+      if self.store.has_file
+        if self.store.nil_file
+          ret = BM::Message.out(:fileempty)
         elsif self.args.empty?
-          ret = self.out_msg(:linesno)
+          ret = BM::Message.out(:linesno)
         else
-          ret = self.out_msg(:matchno)
+          ret = BM::Message.out(:matchno)
         end
       else
-        ret = self.out_msg(:fileno)
+        ret = BM::Message.out(:fileno)
       end
 
       return ret
+    end
+
+
+
+    def clean_args( args = self.args )
+      # They are escaped because they are stored escaped.
+      args.collect! { |f| BM::Utils.escape(f).downcase }
+      return args.uniq
     end
 
 

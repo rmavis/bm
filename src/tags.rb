@@ -5,7 +5,16 @@
 
 
 module BM
-  class Tags
+  class Tags < BM::BM
+
+
+    def self.to_a( str = '' )
+      arr = str.split(BM::Utils.unit_sep)
+      ret = (arr.empty?) ? [ ] : arr.sort.collect { |t| t.strip }
+      return ret
+    end
+
+
 
 
     # When the action is to view tags, main calls this.
@@ -21,8 +30,8 @@ module BM
 
       if ((self.has_file) and (!self.nil_file))
         fh = File.open(self.file_path, 'r')
-        while line = fh.gets(BM.line_sep)
-          p = self.line_to_parts(line)
+        while line = fh.gets(BM::Utils.rec_sep)
+          p = BM::Line.to_parts(line)
           if !p[:tags].empty?
             p[:tags].each do |tag|
               ret[tag] = 0 if !ret.has_key?(tag)

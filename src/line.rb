@@ -5,13 +5,101 @@
 
 
 module BM
-  class Line
+  class Line < BM::BM
+
+
+    def self.parts_h
+      {
+        :val => '',
+        :tags => [ ],
+        :data => BM::Metadata._h
+      }
+    end
+
+
+
+    def self.to_parts( str = '' )
+      ret = BM::Line.parts_h
+
+      arr = str.split(BM::Utils.rec_sep)
+
+      ret[:val] = arr[0]
+      ret[:tags] = BM::Tags.to_a(arr[1])
+      ret[:data] = BM::Metadata.to_h(arr[2])
+
+      return ret
+    end
+
+
+
+
+    def initialize( str = '' )
+      @str, @val, @tags, @data = nil, nil, [ ], { }
+
+      if str.is_a? String
+        @str = str
+        self.to_parts
+      end
+    end
+
+    attr_accessor :str, :val, :tags, :data
+
+
+
+    def to_parts
+      p = BM::Line.to_parts(self.str)
+      self.val = p[:val]
+      self.tags = p[:tags]
+      self.data = p[:data]
+    end
+
+
+
+    def matches?( filts = [ ], incluv = nil )
+      ret = nil
+
+      if !self.val.empty?
+        if filts.empty?
+          ret = true
+
+        else
+          if incluv
+            goodlim, loose = 1, true
+          else
+            goodlim, loose = filts.length, nil
+          end
+
+          good = 0
+
+          filts.each do |filt|
+            if self.tags.empty?
+              good += 1 if self.val.downcase.include? filt
+
+            else
+              self.tags.each do |tag|
+                if loose
+                  good += 1 if tag.include? filt
+                else
+                  good += 1 if tag.downcase == filt
+                end
+              end
+            end
+          end
+
+          ret = true if good >= goodlim
+        end
+      end
+
+      return ret
+    end
+
+
 
 
     # When the action is to create a new line, main calls this.
     def new_line
       if self.args.empty?
-        ret = self.out_msg(:argsno)
+        ret = BM::Message.out(:argsno)
 
       else
         ret = (self.has_file) ? "\n" : self.init_file
@@ -20,10 +108,10 @@ module BM
 
         if self.write_line
           ret <<
-            "\n" + self.out_msg(:saveok) +
+            "\n" + BM::Message.out(:saveok) +
             "\n" + self.sysact.call
         else
-          ret << "\n" + self.out_msg(:savefail)
+          ret << "\n" + BM::Message.out(:savefail)
         end
 
         ret = ret.strip
@@ -36,24 +124,24 @@ module BM
 
     # When the action is to delete a line, main calls this.
     def delete_line
-      self.read_lines!
+      self.lines.read!
 
       if self.lines.empty?
-        ret = self.why_no_lines?
+        ret = self.lines.why_none?
       else
         self.get_wanted_line!
         if self.line.nil?
-          ret = self.out_msg(:delnah)
+          ret = BM::Message.out(:delnah)
         else
           self.chop_val!
-          self.read_lines!([ ])  # Reads the whole file.
+          self.lines.read!([ ])  # Reads the whole file.
           self.remove_line_from_lines!
           self.make_backup_file!
           if self.write_lines
             self.delete_backup_file!
-            ret = self.out_msg(:delok, self.clean(self.val))
+            ret = BM::Message.out(:delok, self.clean(self.val))
           else
-            ret = self.out_msg(:delfail, true)
+            ret = BM::Message.out(:delfail, true)
           end
         end
       end
@@ -67,75 +155,15 @@ module BM
       ret = nil
 
       if self.has_file
-        fh = File.open(self.file_path, 'a+')
+        fh = File.open(self.store.file_path, 'a+')
         if self.nil_file
           fh.puts self.line
         else
-          fh.puts BM.line_sep + "\n" + self.line
+          fh.puts BM::Utils.rec_sep + "\n" + self.line
         end
         fh.close
         self.check_file!
         ret = self.has_file
-      end
-
-      return ret
-    end
-
-
-
-    def get_wanted_line!
-      if self.lines.empty?
-        self.line = nil
-      else
-        # If only one line matches, skip the browsing step.
-        if self.lines.count == 1   # (self.act == :filt)
-          self.line = self.lines[0]
-        else
-          self.line = self.which_line?
-        end
-      end
-    end
-
-
-
-    def which_line?
-      self.print_lines
-      ret = self.prompt_for_line
-      return ret
-    end
-
-
-
-    def does_line_match?(line = self.line, filts = self.args)
-      ret = nil
-
-      if !line.empty?
-        if filts.empty?
-          ret = true
-
-        else
-          if self.inclusive?
-            goodlim, loose = 1, true
-          else
-            goodlim, loose = filts.length, nil
-          end
-          p, good = self.line_to_parts(line), 0
-
-          filts.each do |filt|
-            if p[:tags].empty?
-              good += 1 if p[:val].downcase.include? filt
-            else
-              p[:tags].each do |tag|
-                if loose
-                  good += 1 if tag.include? filt
-                else
-                  good += 1 if tag.downcase == filt
-                end
-              end
-            end
-          end
-          ret = true if good >= goodlim
-        end
       end
 
       return ret
@@ -152,45 +180,12 @@ module BM
           ret = val
         else
           tags = arr.sort
-          ret = tags.join(BM.tag_sep) + BM.tag_sep + val
+          ret = tags.join(BM.unit_sep) + BM.unit_sep + val
         end
-        ret = self.escape(ret)
+        ret = BM::Utils.escape(ret)
       end
 
       self.line = ret
-    end
-
-
-
-    def line_to_parts(str = self.line)
-      ret = { :val => '', :tags => [ ] }
-
-      arr = str.split(BM.tag_sep)
-      ret[:val] = arr.pop
-      ret[:tags] = arr.sort.collect { |t| t.strip } if !arr.empty?
-
-      return ret
-    end
-
-
-
-    def escape(str = self.line)
-      ret = str
-      BM.escapes.each do |esc|
-        ret = ret.gsub(esc){ "\\#{esc}" }
-      end
-
-      return ret
-    end
-
-
-    def clean(str = self.line)
-      ret = str
-      BM.escapes.each do |esc|
-        ret = ret.gsub("\\#{esc}"){ esc }
-      end
-
-      return ret
     end
 
 

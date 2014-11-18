@@ -5,7 +5,14 @@
 
 
 module BM
-  class Value
+  class Value < BM::BM
+
+
+    # Characters that need to be escaped.
+    def self.escapes
+      ["`", '"']
+    end
+
 
 
     # This chops the value field from the given line and saves it.
@@ -13,7 +20,7 @@ module BM
       ret, str = nil, self.line
 
       if str.is_a? String
-        ret = (str.include? BM.tag_sep) ? str.split(BM.tag_sep).last : str
+        ret = (str.include? BM.unit_sep) ? str.split(BM.unit_sep).last : str
         ret = ret.strip
       end
 
@@ -25,9 +32,9 @@ module BM
     def copy_val
       chk = self.copy_val?
       if chk.nil?
-        ret = self.out_msg(:pipefail)
+        ret = BM::Message.out(:pipefail)
       else
-        ret = self.out_msg(:pipeok, self.clean(self.val))
+        ret = BM::Message.out(:pipeok, self.clean(self.val))
       end
       return ret
     end
@@ -48,9 +55,9 @@ module BM
     def open_val
       chk = self.open_val?
       if chk.nil?
-        ret = self.out_msg(:openfail)
+        ret = BM::Message.out(:openfail)
       else
-        ret = self.out_msg(:openok, self.clean(self.val))
+        ret = BM::Message.out(:openok, self.clean(self.val))
       end
       return ret
     end
@@ -61,18 +68,6 @@ module BM
 
       chk = system("open \"#{self.val}\"")
       ret = (chk) ? true : nil
-      return ret
-    end
-
-
-
-    def get_system_action
-      if self.pipe_to == :open
-        ret = Proc.new { self.open_val }
-      else
-        ret = Proc.new { self.copy_val }
-      end
-
       return ret
     end
 

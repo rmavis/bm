@@ -5,13 +5,14 @@
 #
 
 
-
 module BM
-  class Locale
+  class Config < BM::BM
 
-    # =begin Customization variables.
+    #
+    # Customization variables.
     # If you want to change the default file, filter mode, or system call,
     # then change the value of one of these methods.
+    #
 
     def self.file_name
       "~/.bm"
@@ -27,32 +28,9 @@ module BM
       :copy
     end
 
-    # =end Customization variables.
-
-
-
-
-    #
-    # Methods related to the arguments.
-    #
-
-    def inclusive?
-      if self.filter_mode == :loose then true else nil end
-    end
-
-
-
-    #
-    # Runs the demo.
-    #
-
-    def run_demo
-      BMdemo.new(self.args).main
-    end
 
   end
 end
-
 
 
 
