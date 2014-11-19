@@ -4,8 +4,8 @@
 
 
 
-module BM
-  class Value < BM::BM
+module Bm
+  class Value < Bm::Line
 
 
     # Characters that need to be escaped.
@@ -15,59 +15,71 @@ module BM
 
 
 
+    def initialize( str = nil )
+      @str = (str.is_a? String) ? str : nil
+    end
+
+    attr_accessor :str
+
+
+
+    def downcase
+      if (self.str.is_a? String) then self.str.downcase else '' end
+    end
+
+
+
     # This chops the value field from the given line and saves it.
     def chop_val!
       ret, str = nil, self.line
 
       if str.is_a? String
-        ret = (str.include? BM.unit_sep) ? str.split(BM.unit_sep).last : str
+        ret = (str.include? Bm.unit_sep) ? str.split(Bm.unit_sep).last : str
         ret = ret.strip
       end
 
-      self.val = ret
+      self.str = ret
     end
 
 
 
-    def copy_val
-      chk = self.copy_val?
-      if chk.nil?
-        ret = BM::Message.out(:pipefail)
+    def copy
+      if self.sys_copy
+        puts Bm::Message.out(:pipeok, Bm::Utils.clean(self.str))
       else
-        ret = BM::Message.out(:pipeok, self.clean(self.val))
+        puts Bm::Message.out(:pipefail)
       end
-      return ret
     end
 
 
-    def copy_val?(str = self.val)
+    def sys_copy( str = self.str )
       return nil if !str.is_a? String
 
       # Echo's -n flag doesn't work as expected here. It gets copied.
       #chk = system("echo -n \"#{str}\" | pbcopy")
       chk = system("printf \"#{str.gsub(/%/, '%%')}\" | pbcopy")
       ret = (chk) ? true : nil
+
       return ret
     end
 
 
 
-    def open_val
-      chk = self.open_val?
-      if chk.nil?
-        ret = BM::Message.out(:openfail)
+    def open
+      if self.sys_open
+        puts Bm::Message.out(:openok, Bm::Utils.clean(self.str))
       else
-        ret = BM::Message.out(:openok, self.clean(self.val))
+        puts Bm::Message.out(:openfail)
       end
-      return ret
     end
 
 
-    def open_val?(str = self.val)
+    def sys_open( str = self.str )
       return nil if !str.is_a? String
 
-      chk = system("open \"#{self.val}\"")
+      chk = system("open \"#{str}\"")
       ret = (chk) ? true : nil
+
       return ret
     end
 

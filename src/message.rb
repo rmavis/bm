@@ -4,8 +4,8 @@
 
 
 
-module BM
-  class Message < BM::BM
+module Bm
+  class Message < Bm::Hub
 
 
     def self.help_msg
@@ -44,7 +44,7 @@ module BM
   be listed beneath the numbered line. And if there's only one match,
   you'll skip the browsing step.
 
-  #{"bm".syscmd} saves your text in a plain text file at #{BM::Config.file_name}, so you can add,
+  #{"bm".syscmd} saves your text in a plain text file at #{Bm::Config.file_name}, so you can add,
   edit, and remove values in your editor of choice. You can also delete
   values with:
     $ bm -d
@@ -67,7 +67,7 @@ END
   -a, --all        Show all saves.
   -c, --commands   Show this message.
   -d, --delete     Delete a save.
-  -i, --init       Create the #{BM::Config.file_name} file.
+  -i, --init       Create the #{Bm::Config.file_name} file.
   -l, --loose      Match loosely, rather than strictly.
   -m, --demo       Run the demo.
   -n, --new        Add a new line.
@@ -96,7 +96,7 @@ END
      thereby copying it to your clipboard.
 
   #{"bm -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".bmcmd}
-     Save a new line to your #{BM::Config.file_name}. The URL is the value that will be
+     Save a new line to your #{Bm::Config.file_name}. The URL is the value that will be
      piped to #{"pbcopy".syscmd} or passed to #{"open".syscmd}. The other parts of the line are
      the tags, which will be checked when you run other commands.
 
@@ -121,10 +121,10 @@ END
 
   #{"bm -d music".bmcmd}
      Identical to #{"bm music".bmcmd} but the value on the line you enter will be
-     deleted from your #{BM::Config.file_name}.
+     deleted from your #{Bm::Config.file_name}.
 
 END
-      return ret + "\n" + BM::Message.imp_note
+      return ret + "\n" + Bm::Message.imp_note
     end
 
 
@@ -138,7 +138,7 @@ END
 
   So if only one save is tagged "music", then #{"bm -o music".bmcmd} will pass
   the matching value to #{"open".syscmd}, and #{"bm -d music".bmcmd} will delete the save
-  from your #{BM::Config.file_name}.
+  from your #{Bm::Config.file_name}.
 
 END
       return ret
@@ -151,11 +151,11 @@ END
 #{"Extra".header}
   If you feel list customizing #{"bm".syscmd}, there are three class methods toward
   the top of the file that you can change:
-    1. The file name, #{BM::Config.file_name}, is specified in BM::file_name
+    1. The file name, #{Bm::Config.file_name}, is specified in Bm::file_name
        If you change this, make sure you have write privileges.
-    2. The default filter mode is specified in BM::default_filter_mode
+    2. The default filter mode is specified in Bm::filter_mode
        The value should be a symbol, either :strict or :loose
-    3. The default system action is specified in BM::default_pipe_to
+    3. The default system action is specified in Bm::pipe_to
        The value should be a symbol, either :copy or :open
 
   #{"bm".syscmd} uses the non-printing ASCII record and unit separator characters
@@ -186,7 +186,7 @@ END
 
     #
     # This returns a message according to the given key.
-    # The calls to self will return values inherited from BM::BM.
+    # The calls to self will return values inherited from Bm::Hub.
     #
 
     def self.out( x = :bork, v = nil )
@@ -197,14 +197,14 @@ END
 
       elsif (x == :argsbad)
         ret = "Bad arguments, friendo."
-        ret << "\n\n" + BM::Message.show_commands if v
+        ret << "\n\n" + Bm::Message.show_commands if v
 
       elsif (x == :argsno)
         ret = "No arguments. Try something like \"bm good stuff\"."
 
       elsif (x == :delfail)
         ret = "Something went wrong with deleting the line."
-        ret << " A backup file was created at \"#{BM::Store.backup_file_name}\"." if v
+        ret << " A backup file was created at \"#{Bm::Store.backup_file_name}\"." if v
 
       elsif (x == :delnah)
         ret = "Nevermind? Okay."
@@ -216,22 +216,22 @@ END
         ret = "No meta-demos, buster."
 
       elsif (x == :fileempty)
-        ret = "#{BM::Store.file_name} is empty. You can add lines with \"bm -n what ever\"."
+        ret = "#{Bm::Store.file_name} is empty. You can add lines with \"bm -n what ever\"."
 
       elsif (x == :fileexists)
-        ret = "#{BM::Store.file_name} already exists."
+        ret = "#{Bm::Store.file_name} already exists."
 
       elsif (x == :filefail)
-        ret = "Failed to create #{BM::Store.file_name} :("
+        ret = "Failed to create #{Bm::Store.file_name} :("
 
       elsif (x == :fileno)
-        ret = "Can't read #{BM::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+        ret = "Can't read #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
 
       elsif (x == :init)
-        ret = "Created #{BM::Store.file_name}."
+        ret = "Created #{Bm::Store.file_name}."
 
       elsif (x == :linesno)
-        ret = "#{BM::Store.file_name} has no valid lines."
+        ret = "#{Bm::Store.file_name} has no valid lines."
 
       elsif (x == :matchno)
         ret = "No lines match."

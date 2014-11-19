@@ -4,53 +4,56 @@
 
 
 
-module BM
-  class Line < BM::BM
-
-
-    def self.parts_h
-      {
-        :val => '',
-        :tags => [ ],
-        :data => BM::Metadata._h
-      }
-    end
-
-
-
-    def self.to_parts( str = '' )
-      ret = BM::Line.parts_h
-
-      arr = str.split(BM::Utils.rec_sep)
-
-      ret[:val] = arr[0]
-      ret[:tags] = BM::Tags.to_a(arr[1])
-      ret[:data] = BM::Metadata.to_h(arr[2])
-
-      return ret
-    end
-
-
+module Bm
+  class Line < Bm::Hub
 
 
     def initialize( str = '' )
-      @str, @val, @tags, @data = nil, nil, [ ], { }
+      @val, @tags, @meta = Bm::Value.new, Bm::Tags.new, Bm::Metadata.new
 
       if str.is_a? String
         @str = str
-        self.to_parts
+        self.from_s
+      else
+        @str = nil
       end
     end
 
-    attr_accessor :str, :val, :tags, :data
+    attr_accessor :str, :val, :tags, :meta
 
 
 
-    def to_parts
-      p = BM::Line.to_parts(self.str)
-      self.val = p[:val]
-      self.tags = p[:tags]
-      self.data = p[:data]
+    def blank?
+      if (self.str.is_a? String) then nil else true end
+    end
+
+
+
+    def from_s
+      arr = self.str.split(Bm::Utils.rec_sep)
+
+      if arr.is_a? Array
+        if arr.length == 3
+          self.val.str = arr[0].strip
+          self.tags.from_s(arr[1])
+          self.meta.from_s(arr[2])
+
+        else  # Anything?
+          self.str = nil
+        end
+
+      else
+        self.str = nil
+      end
+    end
+
+
+
+    def to_s
+      str =
+        self.val.str + Bm::Utils.grp_sep +
+        self.tags.to_s + Bm::Utils.grp_sep +
+        self.meta.to_s + Bm::Utils.rec_sep
     end
 
 
@@ -58,7 +61,7 @@ module BM
     def matches?( filts = [ ], incluv = nil )
       ret = nil
 
-      if !self.val.empty?
+      if !self.val.str.empty?
         if filts.empty?
           ret = true
 
@@ -72,11 +75,11 @@ module BM
           good = 0
 
           filts.each do |filt|
-            if self.tags.empty?
+            if self.tags.pool.empty?
               good += 1 if self.val.downcase.include? filt
 
             else
-              self.tags.each do |tag|
+              self.tags.pool.each do |tag|
                 if loose
                   good += 1 if tag.include? filt
                 else
@@ -95,11 +98,10 @@ module BM
 
 
 
-
     # When the action is to create a new line, main calls this.
     def new_line
       if self.args.empty?
-        ret = BM::Message.out(:argsno)
+        ret = Bm::Message.out(:argsno)
 
       else
         ret = (self.has_file) ? "\n" : self.init_file
@@ -108,10 +110,10 @@ module BM
 
         if self.write_line
           ret <<
-            "\n" + BM::Message.out(:saveok) +
+            "\n" + Bm::Message.out(:saveok) +
             "\n" + self.sysact.call
         else
-          ret << "\n" + BM::Message.out(:savefail)
+          ret << "\n" + Bm::Message.out(:savefail)
         end
 
         ret = ret.strip
@@ -131,7 +133,7 @@ module BM
       else
         self.get_wanted_line!
         if self.line.nil?
-          ret = BM::Message.out(:delnah)
+          ret = Bm::Message.out(:delnah)
         else
           self.chop_val!
           self.lines.read!([ ])  # Reads the whole file.
@@ -139,9 +141,9 @@ module BM
           self.make_backup_file!
           if self.write_lines
             self.delete_backup_file!
-            ret = BM::Message.out(:delok, self.clean(self.val))
+            ret = Bm::Message.out(:delok, self.clean(self.val))
           else
-            ret = BM::Message.out(:delfail, true)
+            ret = Bm::Message.out(:delfail, true)
           end
         end
       end
@@ -159,7 +161,7 @@ module BM
         if self.nil_file
           fh.puts self.line
         else
-          fh.puts BM::Utils.rec_sep + "\n" + self.line
+          fh.puts Bm::Utils.rec_sep + "\n" + self.line
         end
         fh.close
         self.check_file!
@@ -180,9 +182,9 @@ module BM
           ret = val
         else
           tags = arr.sort
-          ret = tags.join(BM.unit_sep) + BM.unit_sep + val
+          ret = tags.join(Bm.unit_sep) + Bm.unit_sep + val
         end
-        ret = BM::Utils.escape(ret)
+        ret = Bm::Utils.escape(ret)
       end
 
       self.line = ret

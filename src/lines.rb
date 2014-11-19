@@ -3,14 +3,20 @@
 #
 
 
-module BM
-  class Lines < BM::BM
+module Bm
+  class Lines < Bm::Hub
 
 
-    def initialize
-      @pool, @selection = [ ], [ ]
+    def initialize( hub )
+      if hub.is_a? Bm::Hub
+        @hub, @pool, @selection = hub, [ ], [ ]
+
+      else
+        raise Exception.new("Can't instantiate new Lines: need a Hub.")
+      end
     end
 
+    attr_reader :hub
     attr_accessor :pool, :selection
 
 
@@ -23,23 +29,26 @@ module BM
         ret = self.why_none?
 
       else
-        # After this, self.selection will be nil or an array.
-        self.get_wanted_line   #HERE
+        # After this, ::selection will be nil or an array.
+        self.get_wanted_line
 
         if self.selection.nil?
-          ret = BM::Message.out(:valnah)
+          ret = Bm::Message.out(:valnah)
+
         else
           self.selection.each do |line|
+
             if line.val.nil?
-              ret = BM::Message.out(:valno, line.string)
+              puts Bm::Message.out(:valno, line.string)
             else
-              ret = self.sysact.call(line)
+              self.sysact.call(line.val)
+              self.touch_and_record
             end
+
           end
         end
-      end
 
-      return ret
+      end
     end
 
 
@@ -49,17 +58,19 @@ module BM
     # Filters lines from the file that match the @args.
     # Fills in the @lines array.
 
-    def read!( args = self.args )
+    def read!( args = self.hub.args )
       self.pool = [ ]
 
-      if self.store.has_file and !self.store.nil_file
+      if self.hub.store.has_file and !self.hub.store.nil_file
         filts = (args.empty?) ? [ ] : self.clean_args(args)
-        incluv = BM::Utils.filter_inclusive?
+        incluv = Bm::Utils.filter_inclusive?
 
-        fh = File.open(self.store.file_path, 'r')
-        while l_str = fh.gets(BM::Utils.group_sep)
-          l_obj = BM::Line.new(l_str)
-          self.pool.push(l_obj) if l_obj.matches?(filts, incluv)
+        fh = File.open(self.hub.store.file_path, 'r')
+        while l_str = fh.gets(Bm::Utils.grp_sep)
+          l_obj = Bm::Line.new(l_str)
+          if !l_obj.blank?
+            self.pool.push(l_obj) if l_obj.matches?(filts, incluv)
+          end
         end
         fh.close
       end
@@ -77,7 +88,7 @@ module BM
         hsh[line.val] = line
       end
 
-      ks, arr = hsh.keys.sort, [ ]
+      ks, arr = hsh.keys.sort, [ ]  #HERE
       ks.each { |k| arr.push(hsh[k]) }
       self.pool = arr
     end
@@ -115,10 +126,10 @@ module BM
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{BM::Utils.clean(line.val)}"
-        if !line.tags.empty?
+        puts "#{pre} #{Bm::Utils.clean(line.val.str)}"
+        if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
-          puts "#{spc} Tags: #{BM::Utils.clean(line.tags.join(', '))}"
+          puts "#{spc} Tags: #{Bm::Utils.clean(line.tags.pool.join(', '))}"
         end
         n += 1
       end
@@ -132,7 +143,7 @@ module BM
       puts "#{spc}0) None." if inc0
       print "#{spc}?: "
 
-      x = BM::Args.parse_lines_prompt(STDIN.gets.chomp)
+      x = Bm::Args.parse_lines_prompt(STDIN.gets.chomp)
 
       if x.is_a? Array
         ret, bads = [ ], [ ]
@@ -140,7 +151,7 @@ module BM
         x.each do |n|
           chk = self.get_line_by_number(n)
 
-          if chk.is_a? BM::Line
+          if chk.is_a? Bm::Line
             ret.push chk
           else
             bads.push n
@@ -156,7 +167,7 @@ module BM
               ret = self.prompt_for_line(nil)
             end
           else
-            puts "Skipping entries #{bads.join(', ')."
+            puts "Skipping entries #{bads.join(', ')}."
           end
         end
 
@@ -183,6 +194,38 @@ module BM
 
 
 
+
+    def touch_and_record
+      self.selection.each { |l| l.meta.touch }
+
+      sav_file = self.hub.store.file_path
+      tmp_file = Bm::Store.backup_file_path(Bm::Store.temp_ext)
+
+      sav_f = File.open(sav_file, 'r')
+      tmp_f = File.open(tmp_file, 'w')
+
+      while l_str = sav_f.gets(Bm::Utils.grp_sep)
+        out_s = l_str
+
+        l_obj = Bm::Line.new(l_str)
+        self.selection.each do |sel_l|
+          if ((l_obj.val.str == sel_l.val.str) and
+              (l_obj.tags.pool == sel_l.tags.pool))
+            out_s = sel_l.to_s
+          end
+        end
+
+        tmp_f.puts out_s + Bm::Utils.grp_sep
+      end
+
+      sav_f.close
+      tmp_f.close
+
+      File.delete(tmp_file) if File.rename(tmp_file, sav_file)
+    end
+
+
+
     def write_lines
       ret = nil
 
@@ -191,7 +234,7 @@ module BM
         self.pool.each do |line|
           fh.puts line
           n += 1
-          fh.puts BM::Utils.rec_sep if (n < m)
+          fh.puts Bm::Utils.rec_sep if (n < m)
         end
         fh.close
         self.check_file!
@@ -212,16 +255,16 @@ module BM
     # Provides a reason why there are no lines.
     # Mostly here because the same block would be used in multiple methods.
     def why_none?
-      if self.store.has_file
-        if self.store.nil_file
-          ret = BM::Message.out(:fileempty)
-        elsif self.args.empty?
-          ret = BM::Message.out(:linesno)
+      if self.hub.store.has_file
+        if self.hub.store.nil_file
+          ret = Bm::Message.out(:fileempty)
+        elsif self.hub.args.empty?
+          ret = Bm::Message.out(:linesno)
         else
-          ret = BM::Message.out(:matchno)
+          ret = Bm::Message.out(:matchno)
         end
       else
-        ret = BM::Message.out(:fileno)
+        ret = Bm::Message.out(:fileno)
       end
 
       return ret
@@ -229,9 +272,9 @@ module BM
 
 
 
-    def clean_args( args = self.args )
+    def clean_args( args = self.hub.args )
       # They are escaped because they are stored escaped.
-      args.collect! { |f| BM::Utils.escape(f).downcase }
+      args.collect! { |f| Bm::Utils.escape(f).downcase }
       return args.uniq
     end
 

@@ -5,16 +5,16 @@
 #
 
 
-module BM
-  class Demo < BM::BM
+module Bm
+  class Demo < Bm::Hub
 
 
     def self.file_path
-      BM::Store.backup_file_path(BM::Demo.file_ext)
+      Bm::Store.backup_file_path(Bm::Demo.file_ext)
     end
 
     def self.file_name
-      BM::Store.backup_file_name(BM::Demo.file_ext)
+      Bm::Store.backup_file_name(Bm::Demo.file_ext)
     end
 
     def self.file_ext
@@ -41,7 +41,7 @@ module BM
 
 
     def self.run( args = [ ] )
-      BM::Demo.new(args).main
+      Bm::Demo.new(args).main
     end
 
 
@@ -56,16 +56,16 @@ module BM
       self.start!
 
       if self.has_file
-        puts "#{BM::Message.out(:start, BM.has_file?)}\n\n"
+        puts "#{Bm::Message.out(:start, Bm.has_file?)}\n\n"
 
         super
         if self.stop
-          ret = BM::Message.out(:done, BM.has_file?)
+          ret = Bm::Message.out(:done, Bm.has_file?)
         else
-          ret = BM::Message.out(:delfail)
+          ret = Bm::Message.out(:delfail)
         end
       else
-        ret = BM::Message.out(:startfail)
+        ret = Bm::Message.out(:startfail)
       end
 
       puts "\n#{ret}"
@@ -82,7 +82,7 @@ module BM
 
     def write_lines
       self.lines = [ ]
-      BMdemo.filler_lines.each do |arr|
+      Bm::Demo.filler_lines.each do |arr|
         self.lines.push(self.line_from_args!(arr))
       end
       return super
@@ -119,7 +119,7 @@ module BM
 
       elsif (x == :start)
         ret = "This is a demo of #{"bm".bold}. It is running from a demo file, #{self.file_name}."
-        ret << " Your #{BM::Config.file_name} is safe." if v
+        ret << " Your #{Bm::Config.file_name} is safe." if v
 
       elsif (x == :startfail)
         ret = "Unable to run the demo :("

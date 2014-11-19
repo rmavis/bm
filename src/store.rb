@@ -4,16 +4,16 @@
 
 
 
-module BM
-  class Store < BM::BM
+module Bm
+  class Store < Bm::Hub
 
 
     def self.file_name
-      BM::Config.file_name
+      Bm::Config.file_name
     end
 
     def self.file_path
-      File.expand_path(BM::Config.file_name)
+      File.expand_path(Bm::Config.file_name)
     end
 
 
@@ -21,29 +21,43 @@ module BM
       ".bk"
     end
 
-    def self.backup_file_name( ext = BM::Store.backup_ext )
-      BM::Store.file_name + ext
+    def self.temp_ext
+      ".tmp"
     end
 
-    def self.backup_file_path( ext = BM::Store.backup_ext )
-      File.expand_path(BM::Store.backup_file_name(ext))
+
+    def self.backup_file_name( ext = Bm::Store.backup_ext )
+      Bm::Store.file_name + ext
+    end
+
+    def self.backup_file_path( ext = Bm::Store.backup_ext )
+      File.expand_path(Bm::Store.backup_file_name(ext))
     end
 
 
     def self.has_file?
-      if File.file?(BM::Store.file_path) then true else nil end
+      if File.file?(Bm::Store.file_path) then true else nil end
     end
 
 
 
-    def initialize( p = BM::Config.file_path, n = BM::Config.file_name )
-      @path = (p.is_a?(String)) ? p : nil
-      @name = (n.is_a?(String)) ? n : nil
+    def initialize( file = Bm::Config.file_name )
+      @path, @name = '', ''
+
+      if file.is_a? String
+        p = File.expand_path(file)
+        @name = File.basename(p)
+        @path = File.dirname(p)
+      end
+
+      @has_file, @nil_file = nil, nil
 
       self.fix_path_name
+      self.check_file!
     end
 
-    attr_accessor :path, :name
+    attr_accessor :path, :name, :has_file, :nil_file
+
 
 
     def file_path
@@ -97,7 +111,7 @@ module BM
 
 
     def make_backup_file!
-      self.bk_file = self.file_path + BM::Store.backup_ext 
+      self.bk_file = self.file_path + Bm::Store.backup_ext 
       IO.copy_stream(self.file_path, self.bk_file)
     end
 
@@ -111,15 +125,15 @@ module BM
     def init_file
       if self.has_file
         if self.nil_file
-          ret = BM::Message.out(:fileempty)
+          ret = Bm::Message.out(:fileempty)
         else
-          ret = BM::Message.out(:fileexists)
+          ret = Bm::Message.out(:fileexists)
         end
       else
         if self.make_file
-          ret = BM::Message.out(:init)
+          ret = Bm::Message.out(:init)
         else
-          ret = BM::Message.out(:filefail)
+          ret = Bm::Message.out(:filefail)
         end
       end
 

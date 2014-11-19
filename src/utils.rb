@@ -1,4 +1,4 @@
-module BM
+module Bm
   class Utils
 
 
@@ -27,7 +27,7 @@ module BM
 
     def self.escape( str = self.line )
       ret = str
-      BM::Utils.escapes.each do |esc|
+      Bm::Utils.escapes.each do |esc|
         ret = ret.gsub(esc){ "\\#{esc}" }
       end
 
@@ -37,7 +37,7 @@ module BM
 
     def self.clean( str = self.line )
       ret = str
-      BM::Utils.escapes.each do |esc|
+      Bm::Utils.escapes.each do |esc|
         ret = ret.gsub("\\#{esc}"){ esc }
       end
 
@@ -47,7 +47,7 @@ module BM
 
 
     def self.filter_inclusive?
-      if BM::Config.filter_mode == :loose then true else nil end
+      if Bm::Config.filter_mode == :loose then true else nil end
     end
 
 
