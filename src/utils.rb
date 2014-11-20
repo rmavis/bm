@@ -45,11 +45,5 @@ module Bm
     end
 
 
-
-    def self.filter_inclusive?
-      if Bm::Config.filter_mode == :loose then true else nil end
-    end
-
-
   end
 end

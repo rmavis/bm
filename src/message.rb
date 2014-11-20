@@ -192,72 +192,76 @@ END
     def self.out( x = :bork, v = nil )
       x = :bork if !x.is_a? Symbol
 
-      if (x == :actbad)
+      if x == :actbad
         ret = (v.nil?) ? "Invalid action. Strange fire." : "Invalid action: '#{v}'. Strange fire."
 
-      elsif (x == :argsbad)
+      elsif x == :argsbad
         ret = "Bad arguments, friendo."
         ret << "\n\n" + Bm::Message.show_commands if v
 
-      elsif (x == :argsno)
+      elsif x == :argsno
         ret = "No arguments. Try something like \"bm good stuff\"."
 
-      elsif (x == :delfail)
+      elsif x == :delfail
         ret = "Something went wrong with deleting the line."
         ret << " A backup file was created at \"#{Bm::Store.backup_file_name}\"." if v
 
-      elsif (x == :delnah)
+      elsif x == :delnah
         ret = "Nevermind? Okay."
 
-      elsif (x == :delok)
+      elsif x == :delok
         ret = (v.nil?) ? "Consider it gone." : "Deleted \"#{v}\"."
 
-      elsif (x == :demodup)
+      elsif x == :demodup
         ret = "No meta-demos, buster."
 
-      elsif (x == :fileempty)
+      elsif x == :fileempty
         ret = "#{Bm::Store.file_name} is empty. You can add lines with \"bm -n what ever\"."
 
-      elsif (x == :fileexists)
+      elsif x == :fileexists
         ret = "#{Bm::Store.file_name} already exists."
 
-      elsif (x == :filefail)
+      elsif x == :filefail
         ret = "Failed to create #{Bm::Store.file_name} :("
 
-      elsif (x == :fileno)
-        ret = "Can't read #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+      elsif x == :fileno
+        if v
+          ret = "Can't save to #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+        else
+          ret = "Can't read #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+        end
 
-      elsif (x == :init)
+      elsif x == :init
         ret = "Created #{Bm::Store.file_name}."
 
-      elsif (x == :linesno)
+      elsif x == :linesno
         ret = "#{Bm::Store.file_name} has no valid lines."
 
-      elsif (x == :matchno)
+      elsif x == :matchno
         ret = "No lines match."
 
-      elsif (x == :openfail)
+      elsif x == :openfail
         ret = "Failed to open :("
 
-      elsif (x == :openok)
+      elsif x == :openok
         ret = (v.nil?) ? "Opened it." : "Opened \"#{v}\"."
 
-      elsif (x == :pipefail)
+      elsif x == :pipefail
         ret = "Failed to copy value to clipboard. WTF?"
 
-      elsif (x == :pipeok)
+      elsif x == :pipeok
         ret = (v.nil?) ? "Good good." : "Copied \"#{v}\"."
 
-      elsif (x == :savefail)
+      elsif x == :savefail
         ret = "Failed to save new line :("
 
-      elsif (x == :saveok)
-        ret = "Save new line."
+      elsif x == :saveok
+        ret = "Saved new line."
 
-      elsif (x == :valnah)
+      elsif x == :valnah
         ret = "Nothing wanted, nothing copied."
 
-      elsif (x == :valno)
+      elsif x == :valno
         ret = "Unable to find the value on \"#{v}\"."
 
       else

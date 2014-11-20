@@ -52,13 +52,15 @@ module Bm
     end
 
 
-    def sys_copy( str = self.str )
-      return nil if !str.is_a? String
+    def sys_copy
+      ret = nil
 
-      # Echo's -n flag doesn't work as expected here. It gets copied.
-      #chk = system("echo -n \"#{str}\" | pbcopy")
-      chk = system("printf \"#{str.gsub(/%/, '%%')}\" | pbcopy")
-      ret = (chk) ? true : nil
+      if self.str.is_a? String
+        # Echo's -n flag doesn't work as expected here. It gets copied.
+        #chk = system("echo -n \"#{str}\" | pbcopy")
+        chk = system("printf \"#{self.str.gsub(/%/, '%%')}\" | pbcopy")
+        ret = (chk) ? true : nil
+      end
 
       return ret
     end
@@ -74,11 +76,13 @@ module Bm
     end
 
 
-    def sys_open( str = self.str )
-      return nil if !str.is_a? String
+    def sys_open
+      ret = nil
 
-      chk = system("open \"#{str}\"")
-      ret = (chk) ? true : nil
+      if self.str.is_a? String
+        chk = system("open \"#{self.str}\"")
+        ret = (chk) ? true : nil
+      end
 
       return ret
     end

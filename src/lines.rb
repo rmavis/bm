@@ -10,42 +10,31 @@ module Bm
     def initialize( hub )
       if hub.is_a? Bm::Hub
         @hub, @pool, @selection = hub, [ ], [ ]
+        @delmode = nil
 
       else
-        raise Exception.new("Can't instantiate new Lines: need a Hub.")
+        raise Exception.new("Can't instantiate BM Lines: need a Hub.")
       end
     end
 
     attr_reader :hub
-    attr_accessor :pool, :selection
+    attr_accessor :pool, :selection, :delmode
 
 
 
-    # When the action is to cull a line, main calls this.
     def cull
       self.read!
 
       if self.pool.empty?
-        ret = self.why_none?
+        puts self.why_none?
 
       else
-        # After this, ::selection will be nil or an array.
         self.get_wanted_line
 
-        if self.selection.nil?
-          ret = Bm::Message.out(:valnah)
-
+        if self.selection.empty?
+          puts Bm::Message.out(:valnah)
         else
-          self.selection.each do |line|
-
-            if line.val.nil?
-              puts Bm::Message.out(:valno, line.string)
-            else
-              self.sysact.call(line.val)
-              self.touch_and_record
-            end
-
-          end
+          self.act_on_selection
         end
 
       end
@@ -63,7 +52,7 @@ module Bm
 
       if self.hub.store.has_file and !self.hub.store.nil_file
         filts = (args.empty?) ? [ ] : self.clean_args(args)
-        incluv = Bm::Utils.filter_inclusive?
+        incluv = self.hub.filter_inclusive?
 
         fh = File.open(self.hub.store.file_path, 'r')
         while l_str = fh.gets(Bm::Utils.grp_sep)
@@ -85,10 +74,10 @@ module Bm
     def sort!
       hsh = { }
       self.pool.each do |line|
-        hsh[line.val] = line
+        hsh[line.val.str] = line
       end
 
-      ks, arr = hsh.keys.sort, [ ]  #HERE
+      ks, arr = hsh.keys.sort, [ ]
       ks.each { |k| arr.push(hsh[k]) }
       self.pool = arr
     end
@@ -97,7 +86,7 @@ module Bm
 
     def get_wanted_line
       if self.pool.empty?
-        self.selection = nil
+        self.selection = [ ]
 
       else
         # If only one line matches, skip the browsing step.
@@ -138,6 +127,8 @@ module Bm
 
 
     def prompt_for_line( inc0 = true )
+      ret = [ ]
+
       c = (self.pool.count.to_s.length - 1)
       spc = (c > 0) ? (' ' * c) : ''
       puts "#{spc}0) None." if inc0
@@ -146,7 +137,7 @@ module Bm
       x = Bm::Args.parse_lines_prompt(STDIN.gets.chomp)
 
       if x.is_a? Array
-        ret, bads = [ ], [ ]
+        bads = [ ]
 
         x.each do |n|
           chk = self.get_line_by_number(n)
@@ -160,21 +151,18 @@ module Bm
 
         if !bads.empty?
           if x.length == 1
-            if x == 0
-              ret = nil
+
+            if (x[0] == 0) or (x[0].nil?)
+              ret = [ ]
             else
               puts "Bad choice. Try again."
               ret = self.prompt_for_line(nil)
             end
+
           else
             puts "Skipping entries #{bads.join(', ')}."
           end
         end
-
-        ret = nil if ret.empty?
-
-      else  # This will only happen if x isn't a String.
-        ret = nil
       end
 
       return ret
@@ -194,10 +182,34 @@ module Bm
 
 
 
+    def act_on_selection
+      save = true
 
-    def touch_and_record
-      self.selection.each { |l| l.meta.touch }
+      if self.hub.act == :delete
+        self.delmode = true
 
+      elsif ((self.hub.act == :copy) or
+             (self.hub.act == :open))
+        self.selection.each do |line|
+          line.meta.touch
+          if self.hub.act == :copy
+            line.val.copy
+          else
+            line.val.end
+          end
+        end
+
+      else
+        save = nil
+        puts Bm::Message.out(:actbad)
+      end
+
+      self.save_to_store if save
+    end
+
+
+
+    def save_to_store
       sav_file = self.hub.store.file_path
       tmp_file = Bm::Store.backup_file_path(Bm::Store.temp_ext)
 
@@ -205,49 +217,29 @@ module Bm
       tmp_f = File.open(tmp_file, 'w')
 
       while l_str = sav_f.gets(Bm::Utils.grp_sep)
-        out_s = l_str
-
         l_obj = Bm::Line.new(l_str)
-        self.selection.each do |sel_l|
-          if ((l_obj.val.str == sel_l.val.str) and
-              (l_obj.tags.pool == sel_l.tags.pool))
-            out_s = sel_l.to_s
-          end
-        end
 
-        tmp_f.puts out_s + Bm::Utils.grp_sep
+        if !l_obj.blank?
+          # This doesn't chomp the group separator.
+          out_s = l_str.strip.chomp
+
+          self.selection.each do |sel_l|
+            if ((l_obj.val.str == sel_l.val.str) and
+                (l_obj.tags.pool == sel_l.tags.pool))
+              # A true to to_s will append a group separator.
+              out_s = (self.delmode) ? nil : sel_l.to_s(true)
+            end
+          end
+
+          # So no group separator needs to be appended here.
+          tmp_f.puts out_s if !out_s.nil?
+        end
       end
 
       sav_f.close
       tmp_f.close
 
-      File.delete(tmp_file) if File.rename(tmp_file, sav_file)
-    end
-
-
-
-    def write_lines
-      ret = nil
-
-      if self.has_file
-        fh, n, m = File.open(self.file_path, 'w'), 0, self.pool.length
-        self.pool.each do |line|
-          fh.puts line
-          n += 1
-          fh.puts Bm::Utils.rec_sep if (n < m)
-        end
-        fh.close
-        self.check_file!
-        ret = self.has_file
-      end
-
-      return ret
-    end
-
-
-
-    def remove_line_from_lines!
-      self.pool.delete self.selection
+      File.rename(tmp_file, sav_file)
     end
 
 

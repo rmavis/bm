@@ -19,14 +19,23 @@ module Bm
 
 
 
+    def ini
+      now = Time.now.to_i
+      self.time_created = now
+      self.time_touched = 0
+      self.touch_count  = 0
+    end
+
+
+
     def from_s( str = '' )
-      arr = str.split(Bm::Utils.unit_sep)
+      arr = str.split Bm::Utils.unit_sep
 
       if arr.is_a? Array
         if arr.length == 3
-          self.time_created = arr[0]
-          self.time_touched = arr[1]
-          self.touch_count = arr[2]
+          self.time_created = arr[0].to_i
+          self.time_touched = arr[1].to_i
+          self.touch_count = arr[2].to_i
 
         else
           raise Exception.new("Invalid metadata array: #{arr.to_s}. Should have 3 elements.")

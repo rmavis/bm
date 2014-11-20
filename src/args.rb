@@ -10,21 +10,22 @@ module Bm
     # Pass this the arguments array (ARGV) and it will return a
     # hash containing four keys:
     # - :act, indicating the action for the main routine to take
+    #   This will be :open, :copy, :delete, :demo, etc.
     # - :args, which are the arguments for the specified action
+    #   These are cut from the command line
     # - :filtmode, which, if not specified on the command line,
     #    will be the class default
-    # - :pipeto, which acts akin to :filtmode
 
     def self.parse( args = [ ], demo = nil )
       ret = {
-        :act => nil, :args => [ ],
-        :pipeto => Bm::Config.pipe_to,
+        :act => Bm::Config.pipe_to, 
+        :args => [ ],
         :filtmode => Bm::Config.filter_mode
       }
 
       # If there are no args, assume help is needed.
-      if ((!args.is_a? Array) or ((args.is_a? Array) and (args.empty?)))
-        ret[:act] = (demo.nil?) ? :commands : :read
+      if ((!args.is_a? Array) or (args.is_a?(Array) and args.empty?))
+        ret[:act] = (demo.nil?) ? :commands : ret[:act]
 
       else
         wantargs = true
@@ -33,7 +34,7 @@ module Bm
           x = args[0].downcase.strip
 
           if ((x == "-a") or (x == "--all"))
-            ret[:act], wantargs = :read, nil
+            wantargs = nil
           elsif ((x == "-c") or (x == "--commands"))
             ret[:act], wantargs = :commands, nil
           elsif ((x == "-d") or (x == "--delete"))
@@ -47,9 +48,9 @@ module Bm
           elsif ((x == "-n") or (x == "--new"))
             ret[:act] = :new
           elsif ((x == "-o") or (x == "--open"))
-            ret[:pipeto] = :open
+            ret[:act] = :open
           elsif ((x == "-p") or (x == "--copy"))
-            ret[:pipeto] = :copy
+            ret[:act] = :copy
           elsif ((x == "-r") or (x == "--readme") or
                  (x == "-h") or (x == "--help"))
             ret[:act], wantargs = :help, nil
@@ -87,11 +88,13 @@ module Bm
       ret = nil
 
       if str.is_a? String
-        str = str.gsub(/[^0-9]+/, ' ')
+        str = str.gsub(/[^0-9]+/, ' ').squeeze(' ').strip
 
-        if str.include(' ')
-          arr = str.strip.split(' ')
-          ret = arr.collect { |n| n.to_i }
+        if str.empty?
+          ret = [0]
+
+        elsif str.include?(' ')
+          ret = str.split(' ').uniq.collect { |n| n.to_i }
 
         else
           ret = [str.to_i]

@@ -41,6 +41,7 @@ module Bm
 
 
 
+
     def initialize( file = Bm::Config.file_name )
       @path, @name = '', ''
 
@@ -72,19 +73,6 @@ module Bm
     end
 
 
-    def check_file!
-      if self.has_file?
-        self.has_file = true
-      elsif self.has_path?
-        self.has_file = self.make_file
-      else
-        self.has_file = self.make_path and self.make_file
-      end
-
-      self.nil_file = self.file_empty?
-    end
-
-
     def has_file?
       if File.file?(self.file_path) then true else nil end
     end
@@ -93,19 +81,38 @@ module Bm
       if Dir.exists?(self.path) then true else nil end
     end
 
-
     def file_empty?
       if File.zero?(self.file_path) then true else nil end
     end
 
-
-    def make_file
-      f = File.new(self.file_path, 'w+', 0600)
-      return self.has_file?
+    def check_file!
+      self.has_file = self.has_file?
+      self.nil_file = self.file_empty?
     end
 
+
+
+    def make_file
+      if self.has_path? or self.make_path
+        File.new(self.file_path, 'w+', 0600)
+      end
+
+      self.check_file!
+
+      if self.has_file
+        puts Bm::Message.out :init
+        ret = true
+      else
+        puts Bm::Message.out :filefail
+        ret = nil
+      end
+
+      return ret
+    end
+
+
     def make_path
-      d = Dir.mkdir(self.path)
+      Dir.mkdir(self.path) if !self.has_path?
       return self.has_path?
     end
 
@@ -121,20 +128,74 @@ module Bm
     end
 
 
+
+
     # When the action is init, main calls this.
+    # @has_file and @nil_file are set during initialization.
+
     def init_file
       if self.has_file
         if self.nil_file
-          ret = Bm::Message.out(:fileempty)
+          puts Bm::Message.out :fileempty
         else
-          ret = Bm::Message.out(:fileexists)
+          puts Bm::Message.out :fileexists
         end
+
       else
-        if self.make_file
-          ret = Bm::Message.out(:init)
-        else
-          ret = Bm::Message.out(:filefail)
+        self.make_file
+      end
+    end
+
+
+
+    def append?( line = nil )
+      ret = nil
+
+      self.make_file if !self.has_file?
+
+      if self.has_file and line.is_a?(Bm::Line)
+        fh = File.open(self.file_path, 'a')
+        fh.puts line.to_s(true)
+        fh.close
+        ret = true
+      end
+
+      return ret
+    end
+
+
+
+
+    #
+    # These two methods comprise the tags report.
+    #
+
+    def print_tags_report
+      tags = self.cull_tags
+      tags.each { |tag,count| puts "#{tag} (#{count})" }
+    end
+
+
+    def cull_tags
+      ret = { }
+
+      if self.has_file and !self.nil_file
+        fh = File.open(self.file_path, 'r')
+
+        while l_str = fh.gets(Bm::Utils.grp_sep)
+          l_obj = Bm::Line.new(l_str)
+
+          if !l_obj.tags.pool.empty?
+            l_obj.tags.pool.each do |tag|
+              ret[tag] = 0 if !ret.has_key?(tag)
+              ret[tag] += 1
+            end
+          end
         end
+
+        keys, tmp = ret.keys.sort, { }
+        keys.each { |k| tmp[k] = ret[k] }
+        ret, tmp = tmp, nil
       end
 
       return ret

@@ -38,33 +38,27 @@ module Bm
 
     def initialize( args = [ ], demo = nil )
       argh = Bm::Args.parse(args, demo)
-      @act, @args, @filter_mode, @pipe_to = argh[:act], argh[:args], argh[:filtmode], argh[:pipeto]
+      @act, @args, @filter_mode = argh[:act], argh[:args], argh[:filtmode]
 
       f_name = (demo.nil?) ? Bm::Config.file_name : Bm::Demo.file_name
       @store = Bm::Store.new(f_name)
-      @store.check_file!
-
-      @sysact = self.get_system_action
 
       @lines = Bm::Lines.new self
     end
 
-    attr_reader :act, :args, :filter_mode, :pipe_to, :sysact
+    attr_reader :act, :args, :filter_mode
     attr_accessor :store, :lines
 
 
 
     def main
-      ret = nil
-
-      if self.act == :read  #HERE
+      if ((self.act == :copy) or
+          (self.act == :open) or
+          (self.act == :delete))
         self.lines.cull
 
-      elsif (self.act == :commands)
+      elsif self.act == :commands
         puts Bm::Message.show_commands
-
-      elsif (self.act == :delete)
-        ret = self.delete_line
 
       elsif (self.act == :demo)
         ret = Bm::Demo.run(self.args)
@@ -72,44 +66,36 @@ module Bm
       elsif (self.act == :demodup)
         ret = Bm::Message.out(:demodup)
 
-      elsif (self.act == :err)
-        ret = Bm::Message.out(:argsbad, true)
+      elsif self.act == :err
+        puts Bm::Message.out(:argsbad, true)
 
-      elsif (self.act == :examples)
+      elsif self.act == :examples
         puts Bm::Message.show_examples
 
-      elsif (self.act == :help)
+      elsif self.act == :help
         puts Bm::Message.help_msg
 
-      elsif (self.act == :helpx)
+      elsif self.act == :helpx
         puts Bm::Message.help_msg + "\n" + Bm::Message.extra_notes
 
-      elsif (self.act == :init)
-        ret = self.init_file
+      elsif self.act == :init
+        self.store.init_file
 
-      elsif (self.act == :new)
-        ret = self.new_line
+      elsif self.act == :new
+        Bm::Line.new_from_args self
 
-      elsif (self.act == :tags)
-        self.print_tags
+      elsif self.act == :tags
+        self.store.print_tags_report
 
       else   # Strange fire.
-        ret = Bm::Message.out(:actbad, self.act)
+        puts Bm::Message.out(:actbad, self.act)
       end
-
-      puts ret if ret.is_a? String
     end
 
 
 
-    def get_system_action
-      if self.pipe_to == :open
-        ret = Proc.new { |val| val.open }
-      else
-        ret = Proc.new { |val| val.copy }
-      end
-
-      return ret
+    def filter_inclusive?
+      if self.filter_mode == :loose then true else nil end
     end
 
 

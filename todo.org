@@ -1,0 +1,55 @@
+* Read [1/2]
+  - [X] Write
+  - [-] Debug
+    - [X] Is matching too tight?
+    - [X] On prompt, entering 0 and nothing should kill the process
+    - [ ] If selecting multiple items, only one is copied
+      Does not seem to be the case with `open`.
+
+
+
+* New [2/2]
+  - [X] Write
+  - [X] Debug
+
+
+
+* Edit [0/2]
+  - [ ] Write
+  - [ ] Debug
+
+
+
+* Delete [2/2]
+  - [X] Write
+  - [X] Debug
+
+** Revision
+   Should the line actually be deleted, or just marked not live?
+
+
+
+* Init [2/2]
+  - [X] Write
+  - [X] Debug
+
+
+
+* Tags [2/2]                                                        :current:
+  - [X] Write
+  - [X] Debug
+
+** Revision
+   The tags report is currently pretty lame. Can it be made more helpful?
+
+
+
+* Demo [0/2]
+  - [ ] Write
+  - [ ] Debug
+
+
+
+* Help & Messages [0/2]
+  - [ ] Rewrite
+  - [ ] Debug

@@ -3,22 +3,43 @@
 #
 
 
-
 module Bm
-  class Line < Bm::Hub
+  class Line
 
 
-    def initialize( str = '' )
-      @val, @tags, @meta = Bm::Value.new, Bm::Tags.new, Bm::Metadata.new
+    def self.new_from_args( hub )
+      if hub.is_a? Bm::Hub
 
-      if str.is_a? String
-        @str = str
-        self.from_s
+        line = Bm::Line.new hub
+        line.fill_from_args
+
+        if hub.store.append? line
+          puts Bm::Message.out :saveok
+        else
+          puts Bm::Message.out :savefail
+        end
+
       else
-        @str = nil
+        raise Exception.new("Can't create new BM Line: need a Hub.")
       end
     end
 
+
+
+
+    def initialize( ini = nil )
+      @val, @tags, @meta = Bm::Value.new, Bm::Tags.new, Bm::Metadata.new
+      @str, @hub = nil, nil
+
+      if ini.is_a? String
+        @str = ini
+        self.from_s
+      elsif ini.is_a? Bm::Hub
+        @hub = ini
+      end
+    end
+
+    attr_reader :hub
     attr_accessor :str, :val, :tags, :meta
 
 
@@ -29,8 +50,21 @@ module Bm
 
 
 
+    def to_s( add_sep = nil )
+      str =
+        self.val.str + Bm::Utils.rec_sep +
+        self.tags.to_s + Bm::Utils.rec_sep +
+        self.meta.to_s
+
+      str << Bm::Utils.grp_sep if add_sep
+
+      return str
+    end
+
+
+
     def from_s
-      arr = self.str.split(Bm::Utils.rec_sep)
+      arr = self.str.split Bm::Utils.rec_sep
 
       if arr.is_a? Array
         if arr.length == 3
@@ -48,12 +82,15 @@ module Bm
     end
 
 
+    def fill_from_args
+      if self.hub.args.is_a? Array
+        self.val.str = self.hub.args.pop.strip
+        self.tags.pool = self.hub.args
+        self.meta.ini
 
-    def to_s
-      str =
-        self.val.str + Bm::Utils.grp_sep +
-        self.tags.to_s + Bm::Utils.grp_sep +
-        self.meta.to_s + Bm::Utils.rec_sep
+      else
+        # Should an error go #HERE?
+      end
     end
 
 
@@ -94,100 +131,6 @@ module Bm
       end
 
       return ret
-    end
-
-
-
-    # When the action is to create a new line, main calls this.
-    def new_line
-      if self.args.empty?
-        ret = Bm::Message.out(:argsno)
-
-      else
-        ret = (self.has_file) ? "\n" : self.init_file
-        self.line_from_args!
-        self.chop_val!
-
-        if self.write_line
-          ret <<
-            "\n" + Bm::Message.out(:saveok) +
-            "\n" + self.sysact.call
-        else
-          ret << "\n" + Bm::Message.out(:savefail)
-        end
-
-        ret = ret.strip
-      end
-
-      return ret
-    end
-
-
-
-    # When the action is to delete a line, main calls this.
-    def delete_line
-      self.lines.read!
-
-      if self.lines.empty?
-        ret = self.lines.why_none?
-      else
-        self.get_wanted_line!
-        if self.line.nil?
-          ret = Bm::Message.out(:delnah)
-        else
-          self.chop_val!
-          self.lines.read!([ ])  # Reads the whole file.
-          self.remove_line_from_lines!
-          self.make_backup_file!
-          if self.write_lines
-            self.delete_backup_file!
-            ret = Bm::Message.out(:delok, self.clean(self.val))
-          else
-            ret = Bm::Message.out(:delfail, true)
-          end
-        end
-      end
-
-      return ret
-    end
-
-
-
-    def write_line
-      ret = nil
-
-      if self.has_file
-        fh = File.open(self.store.file_path, 'a+')
-        if self.nil_file
-          fh.puts self.line
-        else
-          fh.puts Bm::Utils.rec_sep + "\n" + self.line
-        end
-        fh.close
-        self.check_file!
-        ret = self.has_file
-      end
-
-      return ret
-    end
-
-
-
-    def line_from_args!(arr = self.args)
-      ret = nil
-
-      if arr.is_a? Array
-        val = arr.pop
-        if arr.empty?
-          ret = val
-        else
-          tags = arr.sort
-          ret = tags.join(Bm.unit_sep) + Bm.unit_sep + val
-        end
-        ret = Bm::Utils.escape(ret)
-      end
-
-      self.line = ret
     end
 
 
