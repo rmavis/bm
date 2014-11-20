@@ -4,16 +4,16 @@
 
 
 
-module Bm
-  class Store < Bm::Hub
+module Star
+  class Store < Star::Hub
 
 
     def self.file_name
-      Bm::Config.file_name
+      Star::Config.file_name
     end
 
     def self.file_path
-      File.expand_path(Bm::Config.file_name)
+      File.expand_path(Star::Config.file_name)
     end
 
 
@@ -26,23 +26,23 @@ module Bm
     end
 
 
-    def self.backup_file_name( ext = Bm::Store.backup_ext )
-      Bm::Store.file_name + ext
+    def self.backup_file_name( ext = Star::Store.backup_ext )
+      Star::Store.file_name + ext
     end
 
-    def self.backup_file_path( ext = Bm::Store.backup_ext )
-      File.expand_path(Bm::Store.backup_file_name(ext))
+    def self.backup_file_path( ext = Star::Store.backup_ext )
+      File.expand_path(Star::Store.backup_file_name(ext))
     end
 
 
     def self.has_file?
-      if File.file?(Bm::Store.file_path) then true else nil end
+      if File.file?(Star::Store.file_path) then true else nil end
     end
 
 
 
 
-    def initialize( file = Bm::Config.file_name )
+    def initialize( file = Star::Config.file_name )
       @path, @name = '', ''
 
       if file.is_a? String
@@ -100,10 +100,10 @@ module Bm
       self.check_file!
 
       if self.has_file
-        puts Bm::Message.out :init
+        puts Star::Message.out :init
         ret = true
       else
-        puts Bm::Message.out :filefail
+        puts Star::Message.out :filefail
         ret = nil
       end
 
@@ -118,7 +118,7 @@ module Bm
 
 
     def make_backup_file!
-      self.bk_file = self.file_path + Bm::Store.backup_ext 
+      self.bk_file = self.file_path + Star::Store.backup_ext 
       IO.copy_stream(self.file_path, self.bk_file)
     end
 
@@ -136,9 +136,9 @@ module Bm
     def init_file
       if self.has_file
         if self.nil_file
-          puts Bm::Message.out :fileempty
+          puts Star::Message.out :fileempty
         else
-          puts Bm::Message.out :fileexists
+          puts Star::Message.out :fileexists
         end
 
       else
@@ -153,7 +153,7 @@ module Bm
 
       self.make_file if !self.has_file?
 
-      if self.has_file and line.is_a?(Bm::Line)
+      if self.has_file and line.is_a?(Star::Line)
         fh = File.open(self.file_path, 'a')
         fh.puts line.to_s(true)
         fh.close
@@ -182,8 +182,8 @@ module Bm
       if self.has_file and !self.nil_file
         fh = File.open(self.file_path, 'r')
 
-        while l_str = fh.gets(Bm::Utils.grp_sep)
-          l_obj = Bm::Line.new(l_str)
+        while l_str = fh.gets(Star::Utils.grp_sep)
+          l_obj = Star::Line.new(l_str)
 
           if !l_obj.tags.pool.empty?
             l_obj.tags.pool.each do |tag|

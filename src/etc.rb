@@ -6,7 +6,7 @@
 
 class String
   def syscmd;   self.bold.green end
-  def bmcmd;    self.bold end
+  def starcmd;  self.bold end
   def header;   self.upcase.bold end
 
 

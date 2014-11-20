@@ -20,9 +20,10 @@
 
 
 
-* Delete [2/2]
+* Delete [2/3]
   - [X] Write
   - [X] Debug
+  - [ ] Confirmation message? It currently kills silently. Which conflicts with otherwise verbose behavior.
 
 ** Revision
    Should the line actually be deleted, or just marked not live?

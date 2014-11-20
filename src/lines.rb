@@ -3,17 +3,17 @@
 #
 
 
-module Bm
-  class Lines < Bm::Hub
+module Star
+  class Lines < Star::Hub
 
 
     def initialize( hub )
-      if hub.is_a? Bm::Hub
+      if hub.is_a? Star::Hub
         @hub, @pool, @selection = hub, [ ], [ ]
         @delmode = nil
 
       else
-        raise Exception.new("Can't instantiate BM Lines: need a Hub.")
+        raise Exception.new("Can't instantiate STAR Lines: need a Hub.")
       end
     end
 
@@ -32,7 +32,7 @@ module Bm
         self.get_wanted_line
 
         if self.selection.empty?
-          puts Bm::Message.out(:valnah)
+          puts Star::Message.out(:valnah)
         else
           self.act_on_selection
         end
@@ -42,11 +42,6 @@ module Bm
 
 
 
-
-    # Reads the file.
-    # Filters lines from the file that match the @args.
-    # Fills in the @lines array.
-
     def read!( args = self.hub.args )
       self.pool = [ ]
 
@@ -55,8 +50,8 @@ module Bm
         incluv = self.hub.filter_inclusive?
 
         fh = File.open(self.hub.store.file_path, 'r')
-        while l_str = fh.gets(Bm::Utils.grp_sep)
-          l_obj = Bm::Line.new(l_str)
+        while l_str = fh.gets(Star::Utils.grp_sep)
+          l_obj = Star::Line.new(l_str)
           if !l_obj.blank?
             self.pool.push(l_obj) if l_obj.matches?(filts, incluv)
           end
@@ -115,10 +110,10 @@ module Bm
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{Bm::Utils.clean(line.val.str)}"
+        puts "#{pre} #{Star::Utils.clean(line.val.str)}"
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
-          puts "#{spc} Tags: #{Bm::Utils.clean(line.tags.pool.join(', '))}"
+          puts "#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}"
         end
         n += 1
       end
@@ -134,7 +129,7 @@ module Bm
       puts "#{spc}0) None." if inc0
       print "#{spc}?: "
 
-      x = Bm::Args.parse_lines_prompt(STDIN.gets.chomp)
+      x = Star::Args.parse_lines_prompt(STDIN.gets.chomp)
 
       if x.is_a? Array
         bads = [ ]
@@ -142,7 +137,7 @@ module Bm
         x.each do |n|
           chk = self.get_line_by_number(n)
 
-          if chk.is_a? Bm::Line
+          if chk.is_a? Star::Line
             ret.push chk
           else
             bads.push n
@@ -195,13 +190,13 @@ module Bm
           if self.hub.act == :copy
             line.val.copy
           else
-            line.val.end
+            line.val.open
           end
         end
 
       else
         save = nil
-        puts Bm::Message.out(:actbad)
+        puts Star::Message.out(:actbad)
       end
 
       self.save_to_store if save
@@ -211,13 +206,13 @@ module Bm
 
     def save_to_store
       sav_file = self.hub.store.file_path
-      tmp_file = Bm::Store.backup_file_path(Bm::Store.temp_ext)
+      tmp_file = Star::Store.backup_file_path(Star::Store.temp_ext)
 
       sav_f = File.open(sav_file, 'r')
       tmp_f = File.open(tmp_file, 'w')
 
-      while l_str = sav_f.gets(Bm::Utils.grp_sep)
-        l_obj = Bm::Line.new(l_str)
+      while l_str = sav_f.gets(Star::Utils.grp_sep)
+        l_obj = Star::Line.new(l_str)
 
         if !l_obj.blank?
           # This doesn't chomp the group separator.
@@ -244,19 +239,17 @@ module Bm
 
 
 
-    # Provides a reason why there are no lines.
-    # Mostly here because the same block would be used in multiple methods.
     def why_none?
       if self.hub.store.has_file
         if self.hub.store.nil_file
-          ret = Bm::Message.out(:fileempty)
+          ret = Star::Message.out(:fileempty)
         elsif self.hub.args.empty?
-          ret = Bm::Message.out(:linesno)
+          ret = Star::Message.out(:linesno)
         else
-          ret = Bm::Message.out(:matchno)
+          ret = Star::Message.out(:matchno)
         end
       else
-        ret = Bm::Message.out(:fileno)
+        ret = Star::Message.out(:fileno)
       end
 
       return ret
@@ -266,7 +259,7 @@ module Bm
 
     def clean_args( args = self.hub.args )
       # They are escaped because they are stored escaped.
-      args.collect! { |f| Bm::Utils.escape(f).downcase }
+      args.collect! { |f| Star::Utils.escape(f).downcase }
       return args.uniq
     end
 

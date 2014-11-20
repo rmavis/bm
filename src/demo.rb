@@ -1,20 +1,20 @@
 #
 # Methods for the demo.
 # To run it, prepend "--demo" to any normal string of arguments.
-# Such as "bm --demo -a" or "bm --demo -o book".
+# Such as "star --demo -a" or "star --demo -o book".
 #
 
 
-module Bm
-  class Demo < Bm::Hub
+module Star
+  class Demo < Star::Hub
 
 
     def self.file_path
-      Bm::Store.backup_file_path(Bm::Demo.file_ext)
+      Star::Store.backup_file_path(Star::Demo.file_ext)
     end
 
     def self.file_name
-      Bm::Store.backup_file_name(Bm::Demo.file_ext)
+      Star::Store.backup_file_name(Star::Demo.file_ext)
     end
 
     def self.file_ext
@@ -41,7 +41,7 @@ module Bm
 
 
     def self.run( args = [ ] )
-      Bm::Demo.new(args).main
+      Star::Demo.new(args).main
     end
 
 
@@ -56,16 +56,16 @@ module Bm
       self.start!
 
       if self.has_file
-        puts "#{Bm::Message.out(:start, Bm.has_file?)}\n\n"
+        puts "#{Star::Message.out(:start, Star.has_file?)}\n\n"
 
         super
         if self.stop
-          ret = Bm::Message.out(:done, Bm.has_file?)
+          ret = Star::Message.out(:done, Star.has_file?)
         else
-          ret = Bm::Message.out(:delfail)
+          ret = Star::Message.out(:delfail)
         end
       else
-        ret = Bm::Message.out(:startfail)
+        ret = Star::Message.out(:startfail)
       end
 
       puts "\n#{ret}"
@@ -82,7 +82,7 @@ module Bm
 
     def write_lines
       self.lines = [ ]
-      Bm::Demo.filler_lines.each do |arr|
+      Star::Demo.filler_lines.each do |arr|
         self.lines.push(self.line_from_args!(arr))
       end
       return super
@@ -112,14 +112,14 @@ module Bm
 
       elsif (x == :done)
         if v.nil?
-          ret = "And that's how it works! To get started, type \"bm -i\", or add a line with something like \"bm -n what ever\"."
+          ret = "And that's how it works! To get started, type \"star -i\", or add a line with something like \"star -n what ever\"."
         else
           ret = "Removed the demo file, #{self.file_name}."
         end
 
       elsif (x == :start)
-        ret = "This is a demo of #{"bm".bold}. It is running from a demo file, #{self.file_name}."
-        ret << " Your #{Bm::Config.file_name} is safe." if v
+        ret = "This is a demo of #{"star".bold}. It is running from a demo file, #{self.file_name}."
+        ret << " Your #{Star::Config.file_name} is safe." if v
 
       elsif (x == :startfail)
         ret = "Unable to run the demo :("

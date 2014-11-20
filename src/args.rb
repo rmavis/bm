@@ -3,8 +3,8 @@
 #
 
 
-module Bm
-  class Args < Bm::Hub
+module Star
+  class Args < Star::Hub
 
 
     # Pass this the arguments array (ARGV) and it will return a
@@ -18,9 +18,9 @@ module Bm
 
     def self.parse( args = [ ], demo = nil )
       ret = {
-        :act => Bm::Config.pipe_to, 
+        :act => Star::Config.pipe_to, 
         :args => [ ],
-        :filtmode => Bm::Config.filter_mode
+        :filtmode => Star::Config.filter_mode
       }
 
       # If there are no args, assume help is needed.

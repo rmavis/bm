@@ -4,14 +4,14 @@
 
 
 
-module Bm
-  class Metadata < Bm::Line
+module Star
+  class Metadata < Star::Line
 
 
     def initialize( mdata = nil )
       @time_created, @time_touched, @touch_count = 0, 0, 0
 
-      mdata = mdata.split(Bm::Utils.unit_sep) if mdata.is_a?(String)
+      mdata = mdata.split(Star::Utils.unit_sep) if mdata.is_a?(String)
       self.from_s if mdata.is_a?(Array)
     end
 
@@ -29,7 +29,7 @@ module Bm
 
 
     def from_s( str = '' )
-      arr = str.split Bm::Utils.unit_sep
+      arr = str.split Star::Utils.unit_sep
 
       if arr.is_a? Array
         if arr.length == 3
@@ -49,8 +49,8 @@ module Bm
 
     def to_s
       ret =
-        "#{self.time_created}#{Bm::Utils.unit_sep}" +
-        "#{self.time_touched}#{Bm::Utils.unit_sep}" +
+        "#{self.time_created}#{Star::Utils.unit_sep}" +
+        "#{self.time_touched}#{Star::Utils.unit_sep}" +
         "#{self.touch_count}"
     end
 

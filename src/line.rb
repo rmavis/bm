@@ -3,24 +3,24 @@
 #
 
 
-module Bm
+module Star
   class Line
 
 
     def self.new_from_args( hub )
-      if hub.is_a? Bm::Hub
+      if hub.is_a? Star::Hub
 
-        line = Bm::Line.new hub
+        line = Star::Line.new hub
         line.fill_from_args
 
         if hub.store.append? line
-          puts Bm::Message.out :saveok
+          puts Star::Message.out :saveok
         else
-          puts Bm::Message.out :savefail
+          puts Star::Message.out :savefail
         end
 
       else
-        raise Exception.new("Can't create new BM Line: need a Hub.")
+        raise Exception.new("Can't create new STAR Line: need a Hub.")
       end
     end
 
@@ -28,13 +28,13 @@ module Bm
 
 
     def initialize( ini = nil )
-      @val, @tags, @meta = Bm::Value.new, Bm::Tags.new, Bm::Metadata.new
+      @val, @tags, @meta = Star::Value.new, Star::Tags.new, Star::Metadata.new
       @str, @hub = nil, nil
 
       if ini.is_a? String
         @str = ini
         self.from_s
-      elsif ini.is_a? Bm::Hub
+      elsif ini.is_a? Star::Hub
         @hub = ini
       end
     end
@@ -52,11 +52,11 @@ module Bm
 
     def to_s( add_sep = nil )
       str =
-        self.val.str + Bm::Utils.rec_sep +
-        self.tags.to_s + Bm::Utils.rec_sep +
+        self.val.str + Star::Utils.rec_sep +
+        self.tags.to_s + Star::Utils.rec_sep +
         self.meta.to_s
 
-      str << Bm::Utils.grp_sep if add_sep
+      str << Star::Utils.grp_sep if add_sep
 
       return str
     end
@@ -64,7 +64,7 @@ module Bm
 
 
     def from_s
-      arr = self.str.split Bm::Utils.rec_sep
+      arr = self.str.split Star::Utils.rec_sep
 
       if arr.is_a? Array
         if arr.length == 3

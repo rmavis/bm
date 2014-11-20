@@ -1,4 +1,4 @@
-module Bm
+module Star
   class Utils
 
 
@@ -27,7 +27,7 @@ module Bm
 
     def self.escape( str = self.line )
       ret = str
-      Bm::Utils.escapes.each do |esc|
+      Star::Utils.escapes.each do |esc|
         ret = ret.gsub(esc){ "\\#{esc}" }
       end
 
@@ -37,7 +37,7 @@ module Bm
 
     def self.clean( str = self.line )
       ret = str
-      Bm::Utils.escapes.each do |esc|
+      Star::Utils.escapes.each do |esc|
         ret = ret.gsub("\\#{esc}"){ esc }
       end
 

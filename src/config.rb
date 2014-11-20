@@ -7,13 +7,13 @@
 
 
 
-module Bm
+module Star
   class Config
 
 
     # This needs to include the path.
     def self.file_name
-      "~/.config/bm/store.new"
+      "~/.config/star/store"
     end
 
 

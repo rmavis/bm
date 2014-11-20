@@ -4,39 +4,39 @@
 
 
 
-module Bm
-  class Message < Bm::Hub
+module Star
+  class Message < Star::Hub
 
 
     def self.help_msg
       ret = <<END
 #{"Readme".header}
-  #{"bm".syscmd} is a simple tool for saving and retrieving bits of text. You
+  #{"star".syscmd} is a simple tool for saving and retrieving bits of text. You
   could use it to save bookmarks, hard-to-remember commands, complex
   emoticons, stuff like that.
 
   Say you want to save Wikipedia's page on Tardigrades. You would enter:
-    $ bm -n https://en.wikipedia.org/wiki/Tardigrade
+    $ star -n https://en.wikipedia.org/wiki/Tardigrade
 
   Then, when you want to read about those creepy cool animals again, you
   can type:
-    $ bm Tardigrade
+    $ star Tardigrade
   And, assuming you haven't saved anything else that includes the word
-  "Tardigrade", #{"bm".syscmd} will copy the URL to your clipboard. Or you can type:
-    $ bm -o Tardigrade
+  "Tardigrade", #{"star".syscmd} will copy the URL to your clipboard. Or you can type:
+    $ star -o Tardigrade
   and the URL will be opened in your default browser.
 
   To help with retrieving things later, you can tag can your saves by
   entering words before the value you want to copy or open. So say you
   want to save Wikipedia's page on the Flammarion Engraving and tag it
   "wiki" and "art":
-    $ bm -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
+    $ star -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
 
   To see all your saves tagged "wiki":
-    $ bm wiki
+    $ star wiki
 
   To see all your saves tagged both "wiki" and "art":
-    $ bm wiki art
+    $ star wiki art
 
   If there are more than one saves that match the tags, then you'll be
   shown a numbered list of them and prompted for the one you want. The
@@ -44,16 +44,16 @@ module Bm
   be listed beneath the numbered line. And if there's only one match,
   you'll skip the browsing step.
 
-  #{"bm".syscmd} saves your text in a plain text file at #{Bm::Config.file_name}, so you can add,
+  #{"star".syscmd} saves your text in a plain text file at #{Star::Config.file_name}, so you can add,
   edit, and remove values in your editor of choice. You can also delete
   values with:
-    $ bm -d
+    $ star -d
 
   To see a list of commands:
-    $ bm -c
+    $ star -c
 
   And to run a little demo:
-    $ bm --demo
+    $ star --demo
 
 END
       return ret
@@ -67,7 +67,7 @@ END
   -a, --all        Show all saves.
   -c, --commands   Show this message.
   -d, --delete     Delete a save.
-  -i, --init       Create the #{Bm::Config.file_name} file.
+  -i, --init       Create the #{Star::Config.file_name} file.
   -l, --loose      Match loosely, rather than strictly.
   -m, --demo       Run the demo.
   -n, --new        Add a new line.
@@ -90,41 +90,41 @@ END
     def self.show_examples
       ret = <<END
 #{"Examples".header}
-  #{"bm -a".bmcmd}
+  #{"star -a".starcmd}
      See a numbered list of all your saves. You'll be prompted to enter
      the number of the line you want. That line will be piped to #{"pbcopy".syscmd},
      thereby copying it to your clipboard.
 
-  #{"bm -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".bmcmd}
-     Save a new line to your #{Bm::Config.file_name}. The URL is the value that will be
+  #{"star -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".starcmd}
+     Save a new line to your #{Star::Config.file_name}. The URL is the value that will be
      piped to #{"pbcopy".syscmd} or passed to #{"open".syscmd}. The other parts of the line are
      the tags, which will be checked when you run other commands.
 
-  #{"bm music".bmcmd}
-     See a numbered list of your saves tagged "music". As with #{"bm -a".bmcmd},
+  #{"star music".starcmd}
+     See a numbered list of your saves tagged "music". As with #{"star -a".starcmd},
      you'll be prompted to enter the number of the line you want piped
      to #{"pbcopy".syscmd}. If only one value matches, you won't be prompted for a
      line. See the important note before.
 
-  #{"bm weird music".bmcmd}
-     Identical to #{"bm music".bmcmd} but the list will show your saves
+  #{"star weird music".starcmd}
+     Identical to #{"star music".starcmd} but the list will show your saves
      tagged both "weird" and "music".
 
-  #{"bm -l weird music".bmcmd}
-     Identical to #{"bm music".bmcmd} but the list will show your saves
+  #{"star -l weird music".starcmd}
+     Identical to #{"star music".starcmd} but the list will show your saves
      tagged either "weird" or "music".
 
-  #{"bm -o music".bmcmd}
-     Identical to #{"bm music".bmcmd} but the value on the line you enter will be
+  #{"star -o music".starcmd}
+     Identical to #{"star music".starcmd} but the value on the line you enter will be
      passed to #{"open".syscmd}. So URLs should open in your default browser, files
      and directories should #{"open".syscmd} as expected, etc.
 
-  #{"bm -d music".bmcmd}
-     Identical to #{"bm music".bmcmd} but the value on the line you enter will be
-     deleted from your #{Bm::Config.file_name}.
+  #{"star -d music".starcmd}
+     Identical to #{"star music".starcmd} but the value on the line you enter will be
+     deleted from your #{Star::Config.file_name}.
 
 END
-      return ret + "\n" + Bm::Message.imp_note
+      return ret + "\n" + Star::Message.imp_note
     end
 
 
@@ -136,9 +136,9 @@ END
   shown a numbered list of matches. Instead, that step will be skipped
   and the value will be copied, opened, or deleted accordingly.
 
-  So if only one save is tagged "music", then #{"bm -o music".bmcmd} will pass
-  the matching value to #{"open".syscmd}, and #{"bm -d music".bmcmd} will delete the save
-  from your #{Bm::Config.file_name}.
+  So if only one save is tagged "music", then #{"star -o music".starcmd} will pass
+  the matching value to #{"open".syscmd}, and #{"star -d music".starcmd} will delete the save
+  from your #{Star::Config.file_name}.
 
 END
       return ret
@@ -149,16 +149,16 @@ END
     def self.extra_notes
       ret = <<END
 #{"Extra".header}
-  If you feel list customizing #{"bm".syscmd}, there are three class methods toward
+  If you feel list customizing #{"star".syscmd}, there are three class methods toward
   the top of the file that you can change:
-    1. The file name, #{Bm::Config.file_name}, is specified in Bm::file_name
+    1. The file name, #{Star::Config.file_name}, is specified in Star::file_name
        If you change this, make sure you have write privileges.
-    2. The default filter mode is specified in Bm::filter_mode
+    2. The default filter mode is specified in Star::filter_mode
        The value should be a symbol, either :strict or :loose
-    3. The default system action is specified in Bm::pipe_to
+    3. The default system action is specified in Star::pipe_to
        The value should be a symbol, either :copy or :open
 
-  #{"bm".syscmd} uses the non-printing ASCII record and unit separator characters
+  #{"star".syscmd} uses the non-printing ASCII record and unit separator characters
   when saving your data. The record separator separates each "line". Each
   line holds the value that will be copied or opened along with any tags.
   If there are tags, they will be separated from the value and from each
@@ -186,7 +186,7 @@ END
 
     #
     # This returns a message according to the given key.
-    # The calls to self will return values inherited from Bm::Hub.
+    # The calls to self will return values inherited from Star::Hub.
     #
 
     def self.out( x = :bork, v = nil )
@@ -197,14 +197,14 @@ END
 
       elsif x == :argsbad
         ret = "Bad arguments, friendo."
-        ret << "\n\n" + Bm::Message.show_commands if v
+        ret << "\n\n" + Star::Message.show_commands if v
 
       elsif x == :argsno
-        ret = "No arguments. Try something like \"bm good stuff\"."
+        ret = "No arguments. Try something like \"star good stuff\"."
 
       elsif x == :delfail
         ret = "Something went wrong with deleting the line."
-        ret << " A backup file was created at \"#{Bm::Store.backup_file_name}\"." if v
+        ret << " A backup file was created at \"#{Star::Store.backup_file_name}\"." if v
 
       elsif x == :delnah
         ret = "Nevermind? Okay."
@@ -216,26 +216,26 @@ END
         ret = "No meta-demos, buster."
 
       elsif x == :fileempty
-        ret = "#{Bm::Store.file_name} is empty. You can add lines with \"bm -n what ever\"."
+        ret = "#{Star::Store.file_name} is empty. You can add lines with \"star -n what ever\"."
 
       elsif x == :fileexists
-        ret = "#{Bm::Store.file_name} already exists."
+        ret = "#{Star::Store.file_name} already exists."
 
       elsif x == :filefail
-        ret = "Failed to create #{Bm::Store.file_name} :("
+        ret = "Failed to create #{Star::Store.file_name} :("
 
       elsif x == :fileno
         if v
-          ret = "Can't save to #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+          ret = "Can't save to #{Star::Store.file_name} because it doesn't exist. Run \"star -i\"?"
         else
-          ret = "Can't read #{Bm::Store.file_name} because it doesn't exist. Run \"bm -i\"?"
+          ret = "Can't read #{Star::Store.file_name} because it doesn't exist. Run \"star -i\"?"
         end
 
       elsif x == :init
-        ret = "Created #{Bm::Store.file_name}."
+        ret = "Created #{Star::Store.file_name}."
 
       elsif x == :linesno
-        ret = "#{Bm::Store.file_name} has no valid lines."
+        ret = "#{Star::Store.file_name} has no valid lines."
 
       elsif x == :matchno
         ret = "No lines match."

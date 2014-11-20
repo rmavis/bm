@@ -4,8 +4,8 @@
 
 
 
-module Bm
-  class Value < Bm::Line
+module Star
+  class Value < Star::Line
 
 
     # Characters that need to be escaped.
@@ -34,7 +34,7 @@ module Bm
       ret, str = nil, self.line
 
       if str.is_a? String
-        ret = (str.include? Bm.unit_sep) ? str.split(Bm.unit_sep).last : str
+        ret = (str.include? Star.unit_sep) ? str.split(Star.unit_sep).last : str
         ret = ret.strip
       end
 
@@ -45,9 +45,9 @@ module Bm
 
     def copy
       if self.sys_copy
-        puts Bm::Message.out(:pipeok, Bm::Utils.clean(self.str))
+        puts Star::Message.out(:pipeok, Star::Utils.clean(self.str))
       else
-        puts Bm::Message.out(:pipefail)
+        puts Star::Message.out(:pipefail)
       end
     end
 
@@ -69,9 +69,9 @@ module Bm
 
     def open
       if self.sys_open
-        puts Bm::Message.out(:openok, Bm::Utils.clean(self.str))
+        puts Star::Message.out(:openok, Star::Utils.clean(self.str))
       else
-        puts Bm::Message.out(:openfail)
+        puts Star::Message.out(:openfail)
       end
     end
 
