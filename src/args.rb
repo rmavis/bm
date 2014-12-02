@@ -8,7 +8,7 @@ module Star
 
 
     # Pass this the arguments array (ARGV) and it will return a
-    # hash containing four keys:
+    # hash containing three keys:
     # - :act, indicating the action for the main routine to take
     #   This will be :open, :copy, :delete, :demo, etc.
     # - :args, which are the arguments for the specified action

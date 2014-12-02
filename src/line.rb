@@ -95,6 +95,12 @@ module Star
 
 
 
+    # So searching "cohen" doesn't return a value tagged "leonard cohen"
+    # because the tag-match is only partial. So maybe there should be
+    # multiple grades of matches. Exact matches have the highest grade,
+    # and the returns are displayed and the array is ordered according
+    # to those grades.
+
     def matches?( filts = [ ], incluv = nil )
       ret = nil
 
@@ -112,10 +118,9 @@ module Star
           good = 0
 
           filts.each do |filt|
-            if self.tags.pool.empty?
-              good += 1 if self.val.downcase.include? filt
+            good += 1 if self.val.downcase.include? filt
 
-            else
+            if !self.tags.pool.empty?
               self.tags.pool.each do |tag|
                 if loose
                   good += 1 if tag.include? filt

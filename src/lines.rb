@@ -10,7 +10,7 @@ module Star
     def initialize( hub )
       if hub.is_a? Star::Hub
         @hub, @pool, @selection = hub, [ ], [ ]
-        @delmode = nil
+        @delmode = self.is_delmode?
 
       else
         raise Exception.new("Can't instantiate STAR Lines: need a Hub.")
@@ -85,7 +85,7 @@ module Star
 
       else
         # If only one line matches, skip the browsing step.
-        if self.pool.count == 1   # (self.act == :filt)
+        if (self.pool.count == 1) and (!self.delmode)
           self.selection = [self.pool[0]]
         else
           self.selection = self.which_line?
@@ -221,8 +221,13 @@ module Star
           self.selection.each do |sel_l|
             if ((l_obj.val.str == sel_l.val.str) and
                 (l_obj.tags.pool == sel_l.tags.pool))
-              # A true to to_s will append a group separator.
-              out_s = (self.delmode) ? nil : sel_l.to_s(true)
+              if self.delmode
+                puts Star::Message.out(:delok, Star::Utils.clean(sel_l.val.str))
+                out_s = nil
+              else
+                # A true to to_s will append a group separator.
+                out_s = sel_l.to_s(true)
+              end
             end
           end
 
@@ -253,6 +258,12 @@ module Star
       end
 
       return ret
+    end
+
+
+
+    def is_delmode?
+      if (self.hub.act == :delete) then true else nil end
     end
 
 

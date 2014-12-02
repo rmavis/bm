@@ -21,7 +21,7 @@ module Star
 
     def self.require_files
       Star::Hub.required_files.each do |req|
-        req = File.expand_path("src/#{req}")
+        req = "#{__dir__}/src/#{req}"
         if File.exists? req
           require_relative req
         else

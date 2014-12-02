@@ -30,4 +30,15 @@ class String
   def bg_gray;        "\033[47m#{self}\033[0m" end
   def bold;           "\033[1m#{self}\033[22m" end
   def reverse_color;  "\033[7m#{self}\033[27m" end
+
+
+
+  def puts_p( indent = 0, line_lim = 60 )
+# - check the character at the specified line_lim
+# - work back to the first space character
+# - slice string at that place
+# - print the sliced segment, prepending the indent spaces
+# - feed the other sliced segment back to the s
+  end
+
 end
