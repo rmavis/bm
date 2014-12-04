@@ -33,12 +33,28 @@ class String
 
 
 
-  def puts_p( indent = 0, line_lim = 60 )
-# - check the character at the specified line_lim
-# - work back to the first space character
-# - slice string at that place
-# - print the sliced segment, prepending the indent spaces
-# - feed the other sliced segment back to the s
+  def puts_p( line_lim = 70, indent = 0 )
+    use = self
+    lim = (line_lim - 1)
+
+    while !use.nil? and use.length > 0
+      if use.length > lim
+        chk = use.slice(0..lim)
+        len = chk.rindex(' ') || lim
+      else
+        chk, len = use, use.length
+      end
+
+      indent.times { print ' ' }
+      print chk.slice(0..len).strip + "\n"
+
+      use = use.slice((len + 1)..use.length)
+    end
   end
 
 end
+
+
+
+
+# "A Unix shell is a command-line interpreter or shell that provides a traditional user interface for the Unix operating system and for Unix-like systems. Users direct the operation of the computer by entering commands as text for a command line interpreter to execute, or by creating text scripts of one or more such commands. Users typically interact with a Unix shell using a terminal emulator, however, direct operation via serial hardware connections, or networking session, are common for server systems.".puts_p(3, 10)
