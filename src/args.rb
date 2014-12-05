@@ -35,7 +35,8 @@ module Star
 
           if ((x == "-a") or (x == "--all"))
             wantargs = nil
-          elsif ((x == "-c") or (x == "--commands"))
+          elsif ((x == "-c") or (x == "--commands") or
+                 (x == "-f") or (x == "--flags"))
             ret[:act], wantargs = :commands, nil
           elsif ((x == "-d") or (x == "--delete"))
             ret[:act] = :delete

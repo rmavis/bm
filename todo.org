@@ -1,10 +1,12 @@
-* Read [1/2]
+* Read [2/3]
   - [X] Write
   - [-] Debug
     - [X] Is matching too tight?
     - [X] On prompt, entering 0 and nothing should kill the process
     - [ ] If selecting multiple items, only one is copied
       Does not seem to be the case with `open`.
+  - [X] Better matching
+    MAR: Match Accuracy Rating
 
 
 
@@ -51,6 +53,6 @@
 
 
 
-* Help & Messages [0/2]
-  - [ ] Rewrite
+* Help & Messages [1/2]
+  - [X] Rewrite
   - [ ] Debug

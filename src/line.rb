@@ -29,7 +29,7 @@ module Star
 
     def initialize( ini = nil )
       @val, @tags, @meta = Star::Value.new, Star::Tags.new, Star::Metadata.new
-      @str, @hub = nil, nil
+      @str, @hub, @mars = nil, nil, [ ]
 
       if ini.is_a? String
         @str = ini
@@ -40,7 +40,7 @@ module Star
     end
 
     attr_reader :hub
-    attr_accessor :str, :val, :tags, :meta
+    attr_accessor :str, :val, :tags, :meta, :mars
 
 
 
@@ -109,26 +109,35 @@ module Star
           ret = true
 
         else
-          if incluv
-            goodlim, loose = 1, true
-          else
-            goodlim, loose = filts.length, nil
-          end
-
+          goodlim = (incluv) ? 1 : filts.length
           good = 0
 
           filts.each do |filt|
-            good += 1 if self.val.downcase.include? filt
+            regex = '.*'
+            filt.downcase.each_char { |c| regex << c+'.*' }
+            tagmatch = nil
+
+            if self.val.str.downcase.match(regex)
+              mar = filt.length.to_f / self.val.str.length.to_f
+              self.adj_mar(mar)
+              tagmatch = true
+            end
 
             if !self.tags.pool.empty?
               self.tags.pool.each do |tag|
-                if loose
-                  good += 1 if tag.include? filt
+                if tag.match(regex)
+                  mar = filt.length.to_f / tag.length.to_f
+                  self.adj_mar(mar)
+                  tagmatch = true
+
                 else
-                  good += 1 if tag.downcase == filt
+                  # puts "#{tag} doesn't match #{regex}"
+                  self.adj_mar
                 end
               end
             end
+
+            good += 1 if tagmatch
           end
 
           ret = true if good >= goodlim
@@ -136,6 +145,28 @@ module Star
       end
 
       return ret
+    end
+
+
+
+    # MAR: Match Accuracy Rating
+    def mar
+      ret = 0
+
+      if self.mars.length > 0
+        ttl = 0
+        # puts "#{self.val.str}: #{self.mars.to_s}"
+        self.mars.each { |x| ttl += x }
+        ret = (ttl / self.mars.length)
+      end
+
+      return ret
+    end
+
+
+
+    def adj_mar( score = 0 )
+      self.mars.push(score)
     end
 
 

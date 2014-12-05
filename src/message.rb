@@ -5,57 +5,49 @@
 
 
 module Star
-  class Message < Star::Hub
+  class Message
+
+    def self.p_indent;   2 end
 
 
     def self.help_msg
-      ret = <<END
-#{"Readme".header}
-  #{"star".syscmd} is a simple tool for saving and retrieving bits of text. You
-  could use it to save bookmarks, hard-to-remember commands, complex
-  emoticons, stuff like that.
+      ret = 
+        "Readme".header.form_p +
 
-  Say you want to save Wikipedia's page on Tardigrades. You would enter:
-    $ star -n https://en.wikipedia.org/wiki/Tardigrade
+        "#{"star".header}: Simple Text Archiver And Retriever".form_p(Star::Message.p_indent) +
 
-  Then, when you want to read about those creepy cool animals again, you
-  can type:
-    $ star Tardigrade
-  And, assuming you haven't saved anything else that includes the word
-  "Tardigrade", #{"star".syscmd} will copy the URL to your clipboard. Or you can type:
-    $ star -o Tardigrade
-  and the URL will be opened in your default browser.
+        "#{"star".command} is a simple tool for saving and retrieving bits of text. You could use it to save bookmarks, hard-to-remember commands, complex emoticons, stuff like that.".form_p(Star::Message.p_indent) +
 
-  To help with retrieving things later, you can tag can your saves by
-  entering words before the value you want to copy or open. So say you
-  want to save Wikipedia's page on the Flammarion Engraving and tag it
-  "wiki" and "art":
-    $ star -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
+        "Say you want to save Wikipedia's page on Tardigrades. You would enter:".form_p(Star::Message.p_indent, nil) +
+        "$ star -n https://en.wikipedia.org/wiki/Tardigrade".form_p(Star::Message.p_indent * 2) +
 
-  To see all your saves tagged "wiki":
-    $ star wiki
+        "Then, when you want to read about those creepy cool animals again, you can type:".form_p(Star::Message.p_indent, nil) +
+        "$ star tardigrade".form_p(Star::Message.p_indent * 2, nil) +
+        "And, assuming you haven't saved anything else that includes the word \"Tardigrade\", #{"star".command} will copy the URL to your clipboard. Or you can type:".form_p(Star::Message.p_indent, nil) +
+        "$ star -o tardigrade".form_p(Star::Message.p_indent * 2, nil) +
+        "and the URL will be opened in your default browser.".form_p(Star::Message.p_indent) +
 
-  To see all your saves tagged both "wiki" and "art":
-    $ star wiki art
+        "To help with retrieving things later, you can tag your saves by entering words before the value you'd want to copy or open. So say you want to save Wikipedia's page on the Flammarion Engraving and tag it \"wiki\" and \"art\":".form_p(Star::Message.p_indent, nil) +
+        "$ star -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving".form_p(Star::Message.p_indent * 2) +
 
-  If there are more than one saves that match the tags, then you'll be
-  shown a numbered list of them and prompted for the one you want. The
-  text on the numbered line will be copied to your clipboard. Tags will
-  be listed beneath the numbered line. And if there's only one match,
-  you'll skip the browsing step.
+        "To see all your saves tagged \"wiki\":".form_p(Star::Message.p_indent, nil) +
+        "$ star wiki".form_p(Star::Message.p_indent * 2) +
 
-  #{"star".syscmd} saves your text in a plain text file at #{Star::Config.file_name}, so you can add,
-  edit, and remove values in your editor of choice. You can also delete
-  values with:
-    $ star -d
+        "To see all your saves tagged both \"wiki\" and \"art\":".form_p(Star::Message.p_indent, nil) +
+        "$ star wiki art".form_p(Star::Message.p_indent * 2) +
 
-  To see a list of commands:
-    $ star -c
+        "If there's only one match, the value will be copied to your clipboard or opened. If there are multiple matches, then you'll be shown a numbered list of them and prompted for the one you want.".form_p(Star::Message.p_indent) +
 
-  And to run a little demo:
-    $ star --demo
+        "#{"star".command} saves your text in a plain text file. The default location is".form_p(Star::Message.p_indent, nil) +
+        Star::Config.file_name.form_p(Star::Message.p_indent * 2, nil) +
+        "but you can change that if you want to.".form_p(Star::Message.p_indent) +
 
-END
+        "To see a list of commands:".form_p(Star::Message.p_indent, nil) +
+        "$ star --commands".form_p(Star::Message.p_indent * 2) +
+
+        "And to run a little demo:".form_p(Star::Message.p_indent, nil) +
+        "$ star --demo".form_p(Star::Message.p_indent * 2)
+
       return ret
     end
 
@@ -65,14 +57,15 @@ END
       ret = <<END
 #{"Flags".header}
   -a, --all        Show all saves.
-  -c, --commands   Show this message.
+  -c, --commands,
+    -f, --flags    Show this message.
   -d, --delete     Delete a save.
   -i, --init       Create the #{Star::Config.file_name} file.
   -l, --loose      Match loosely, rather than strictly.
   -m, --demo       Run the demo.
   -n, --new        Add a new line.
-  -o, --open       #{"open".syscmd} the value rather than #{"pbcopy".syscmd} it.
-  -p, --copy       #{"pbcopy".syscmd} the value rather than #{"open".syscmd} it.
+  -o, --open       #{"open".command} the value rather than #{"pbcopy".command} it.
+  -p, --copy       #{"pbcopy".command} the value rather than #{"open".command} it.
   -r, --readme,
     -h, --help     Show the readme message.
   -s, --strict     Match strictly rather than loosely.
@@ -88,96 +81,78 @@ END
 
 
     def self.show_examples
-      ret = <<END
-#{"Examples".header}
-  #{"star -a".starcmd}
-     See a numbered list of all your saves. You'll be prompted to enter
-     the number of the line you want. That line will be piped to #{"pbcopy".syscmd},
-     thereby copying it to your clipboard.
+      ret =
+        "Examples".header.form_p +
 
-  #{"star -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".starcmd}
-     Save a new line to your #{Star::Config.file_name}. The URL is the value that will be
-     piped to #{"pbcopy".syscmd} or passed to #{"open".syscmd}. The other parts of the line are
-     the tags, which will be checked when you run other commands.
+        "See a numbered list of all your saves:".form_p(Star::Message.p_indent, nil) +
+        "$ star -a".form_p(Star::Message.p_indent * 2, nil) +
+        "You'll be prompted to enter the number of the line you want. That line will be piped to #{"pbcopy".command}, thereby copying it to your clipboard.".form_p(Star::Message.p_indent) +
 
-  #{"star music".starcmd}
-     See a numbered list of your saves tagged "music". As with #{"star -a".starcmd},
-     you'll be prompted to enter the number of the line you want piped
-     to #{"pbcopy".syscmd}. If only one value matches, you won't be prompted for a
-     line. See the important note before.
+        "Save a new line to your #{Star::Config.file_name}:".form_p(Star::Message.p_indent, nil) +
+        "$ star -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".form_p(Star::Message.p_indent * 2, nil) +
+        "The URL is the value that will be piped to #{"pbcopy".command} or passed to #{"open".command}. The other parts of the line are the tags, which will be checked when you run other commands.".form_p(Star::Message.p_indent) +
 
-  #{"star weird music".starcmd}
-     Identical to #{"star music".starcmd} but the list will show your saves
-     tagged both "weird" and "music".
+        "See a numbered list of your saves tagged \"music\":".form_p(Star::Message.p_indent, nil) +
+        "$ star music".form_p(Star::Message.p_indent * 2, nil) +
+        "As with #{"star -a".command}, you'll be prompted to enter the number of the line you want piped to #{"pbcopy".command}. If only one value matches, you won't be prompted for a line. See the important note before.".form_p(Star::Message.p_indent) +
 
-  #{"star -l weird music".starcmd}
-     Identical to #{"star music".starcmd} but the list will show your saves
-     tagged either "weird" or "music".
+        "Identical to #{"star music".command} but the list will show your saves tagged both \"weird\" and \"music\".".form_p(Star::Message.p_indent, nil) +
+        "$ star weird music".form_p(Star::Message.p_indent * 2) +
 
-  #{"star -o music".starcmd}
-     Identical to #{"star music".starcmd} but the value on the line you enter will be
-     passed to #{"open".syscmd}. So URLs should open in your default browser, files
-     and directories should #{"open".syscmd} as expected, etc.
+        "Identical to #{"star music".command} but the list will show your saves tagged either \"weird\" or \"music\".".form_p(Star::Message.p_indent, nil) +
+        "$ star -l weird music".form_p(Star::Message.p_indent * 2) +
 
-  #{"star -d music".starcmd}
-     Identical to #{"star music".starcmd} but the value on the line you enter will be
-     deleted from your #{Star::Config.file_name}.
+        "Identical to #{"star music".command} but the value on the line you enter will be passed to #{"open".command}. So URLs should open in your default browser, files and directories should #{"open".command} as expected, etc.".form_p(Star::Message.p_indent, nil) +
+        "$ star -o music".form_p(Star::Message.p_indent * 2) +
 
-END
+        "Identical to #{"star music".command} but the matching line will be deleted from your #{Star::Config.file_name}.".form_p(Star::Message.p_indent, nil) +
+        "$ star -d music".form_p(Star::Message.p_indent * 2)
+
       return ret + "\n" + Star::Message.imp_note
     end
 
 
 
     def self.imp_note
-      ret = <<END
-#{"Important".header}
-  If only one save matches the tags you specify, then you will not be
-  shown a numbered list of matches. Instead, that step will be skipped
-  and the value will be copied, opened, or deleted accordingly.
+      ret =
+        "Important".header.form_p +
+        "If only one save matches the tags you specify, then you will not be shown a numbered list of matches. Instead, that step will be skipped and the value will be copied, opened, or deleted accordingly.".form_p(Star::Message.p_indent) +
+        "So if only one save is tagged \"music\", then #{"star -o music".command} will pass the matching value to #{"open".command}, and #{"star -d music".command} will delete the save from your #{Star::Config.file_name}.".form_p(Star::Message.p_indent)
 
-  So if only one save is tagged "music", then #{"star -o music".starcmd} will pass
-  the matching value to #{"open".syscmd}, and #{"star -d music".starcmd} will delete the save
-  from your #{Star::Config.file_name}.
-
-END
       return ret
     end
 
 
 
     def self.extra_notes
-      ret = <<END
-#{"Extra".header}
-  If you feel list customizing #{"star".syscmd}, there are three class methods toward
-  the top of the file that you can change:
-    1. The file name, #{Star::Config.file_name}, is specified in Star::file_name
+      ret =
+        "Extra".header.form_p +
+        "If you feel list customizing #{"star".command}, you can edit the methods in #{__dir__}/config.rb.".form_p(Star::Message.p_indent, nil)
+      ret << <<END
+    1. The file name, #{Star::Config.file_name}, is specified in Config::file_name
        If you change this, make sure you have write privileges.
-    2. The default filter mode is specified in Star::filter_mode
+    2. The default filter mode is specified in Config::filter_mode
        The value should be a symbol, either :strict or :loose
-    3. The default system action is specified in Star::pipe_to
+    3. The default system action is specified in Config::pipe_to
        The value should be a symbol, either :copy or :open
 
-  #{"star".syscmd} uses the non-printing ASCII record and unit separator characters
-  when saving your data. The record separator separates each "line". Each
-  line holds the value that will be copied or opened along with any tags.
-  If there are tags, they will be separated from the value and from each
-  other by the unit separator. The value is the last slot in that line.
-  Something like this:
-    https://en.wikipedia.org/wiki/Tardigrade
-    #{"^^".red}
-    music#{"^_".red}Nils Frahm#{"^_".red}Screws#{"^_".red}http://screws.nilsfrahm.com/
-    #{"^^".red}
-    wiki#{"^_".red}art#{"^_".red}http://en.wikipedia.org/wiki/Flammarion_engraving
-
-  So if you want to edit the file in your editor of choice, beware that
-  your editor might not display those characters, or might display them
-  weirdly. In #{"emacs".syscmd}, you can enter the record separator with:
-    C-q 036 <RET>
-  And the unit separator with:
-    C-q 037 <RET>
-
 END
+
+      ret <<
+        "The #{"star".command} file format uses the non-printing ASCII group, record, and unit separator characters. The group separator separates each \"line\". Each line is divided into three parts by record separators. The first part is the value that will be copied or opened. The second part holds the tags. The third part holds metadata. The individual tags and pieces of metadata are separated by unit separators.".form_p(Star::Message.p_indent) +
+        
+        "So each line looks something like this:".form_p(Star::Message.p_indent, nil) +
+        "    http://en.wikipedia.org/wiki/Flammarion_engraving#{"^^".cyan}art#{"^_".cyan}wiki#{"^^".cyan}1417427624#{"^_".cyan}1417742246#{"^_".cyan}4#{"^]".cyan}\n\n" +
+
+        "The metadata consists of two timestamps, indicating the times you created and last selected the associated value, and a running tally of the number of times you've selected that value.".form_p(Star::Message.p_indent) +
+
+        "So if you want to edit the file in your editor of choice, do so with care. And beware that your editor might not display those non-printing characters or might display them weirdly. In #{"emacs".command}, you can enter the group separator with:".form_p(Star::Message.p_indent , nil) +
+        "C-q 035 <RET>".form_p(Star::Message.p_indent * 2, nil) +
+        "And the record separator with:".form_p(Star::Message.p_indent , nil) +
+        "C-q 036 <RET>".form_p(Star::Message.p_indent * 2, nil) +
+        "And the unit separator with:".form_p(Star::Message.p_indent , nil) +
+        "C-q 037 <RET>".form_p(Star::Message.p_indent * 2)
+
       return ret
     end
 

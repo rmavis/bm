@@ -64,17 +64,25 @@ module Star
 
 
 
-    # This functionality #HERE will need to be updated.
-    # The lines should be able to sort on value or metadata.
+    # This sorts by the line's Match Accuracy Rating.
     def sort!
-      hsh = { }
+      l_arr, m_arr = [ ], [ ]
       self.pool.each do |line|
-        hsh[line.val.str] = line
+        m_arr.push(line.mar)
+        l_arr.push(line)
       end
 
-      ks, arr = hsh.keys.sort, [ ]
-      ks.each { |k| arr.push(hsh[k]) }
-      self.pool = arr
+      m_arr, out = m_arr.sort, [ ]
+      m_arr.each do |mar|
+        l_arr.each do |line|
+          if line.mar == mar
+            out.push(line)
+            l_arr.delete(line)
+          end
+        end
+      end
+
+      self.pool = out.reverse
     end
 
 
@@ -110,7 +118,7 @@ module Star
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{Star::Utils.clean(line.val.str)}"
+        puts "#{pre} #{Star::Utils.clean(line.val.str)}"  # (#{line.mar})
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
           puts "#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}"
@@ -224,6 +232,7 @@ module Star
               if self.delmode
                 puts Star::Message.out(:delok, Star::Utils.clean(sel_l.val.str))
                 out_s = nil
+
               else
                 # A true to to_s will append a group separator.
                 out_s = sel_l.to_s(true)
@@ -253,6 +262,7 @@ module Star
         else
           ret = Star::Message.out(:matchno)
         end
+
       else
         ret = Star::Message.out(:fileno)
       end
