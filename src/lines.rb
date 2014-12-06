@@ -32,7 +32,7 @@ module Star
         self.get_wanted_line
 
         if self.selection.empty?
-          puts Star::Message.out(:valnah)
+          puts Star::Message.out(:valnah, self.hub.act)
         else
           self.act_on_selection
         end
@@ -68,14 +68,14 @@ module Star
     def sort!
       l_arr, m_arr = [ ], [ ]
       self.pool.each do |line|
-        m_arr.push(line.mar)
+        m_arr.push(line.adj_mar)
         l_arr.push(line)
       end
 
       m_arr, out = m_arr.sort, [ ]
       m_arr.each do |mar|
         l_arr.each do |line|
-          if line.mar == mar
+          if line.adj_mar == mar
             out.push(line)
             l_arr.delete(line)
           end
@@ -118,7 +118,7 @@ module Star
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{Star::Utils.clean(line.val.str)}"  # (#{line.mar})
+        puts "#{pre} #{Star::Utils.clean(line.val.str)} (#{line.adj_mar})"  # 
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
           puts "#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}"
@@ -214,7 +214,7 @@ module Star
 
     def save_to_store
       sav_file = self.hub.store.file_path
-      tmp_file = Star::Store.backup_file_path(Star::Store.temp_ext)
+      tmp_file = self.hub.store.make_backup_file(Star::Store.temp_ext, nil)
 
       sav_f = File.open(sav_file, 'r')
       tmp_f = File.open(tmp_file, 'w')
@@ -256,15 +256,15 @@ module Star
     def why_none?
       if self.hub.store.has_file
         if self.hub.store.nil_file
-          ret = Star::Message.out(:fileempty)
+          ret = Star::Message.out(:fileempty, self.hub.store.name)
         elsif self.hub.args.empty?
-          ret = Star::Message.out(:linesno)
+          ret = Star::Message.out(:linesno, self.hub.store.name)
         else
           ret = Star::Message.out(:matchno)
         end
 
       else
-        ret = Star::Message.out(:fileno)
+        ret = Star::Message.out(:fileno, self.hub.store.name)
       end
 
       return ret

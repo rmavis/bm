@@ -62,11 +62,11 @@ module Star
       elsif self.act == :commands
         puts Star::Message.show_commands
 
-      elsif (self.act == :demo)
-        ret = Star::Demo.run(self.args)
+      elsif self.act == :demo
+        Star::Demo.run(self.args)
 
-      elsif (self.act == :demodup)
-        ret = Star::Message.out(:demodup)
+      elsif self.act == :demodup
+        puts Star::Message.out(:demodup)
 
       elsif self.act == :err
         puts Star::Message.out(:argsbad, true)

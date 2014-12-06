@@ -47,53 +47,61 @@ module Star
 
 
 
-    def initialize(args)
-      super(args, true)
+
+    def initialize( args )
+      @hub = Star::Hub.new(args, true)
     end
+
+    attr_accessor :hub
+
 
 
     def main
       self.start!
 
-      if self.has_file
-        puts "#{Star::Message.out(:start, Star.has_file?)}\n\n"
+      if self.hub.store.has_file
+        puts "#{self.out_msg(:start, self.hub.store.has_file?)}\n\n"
 
-        super
-        if self.stop
-          ret = Star::Message.out(:done, Star.has_file?)
+        self.hub.main
+
+        if self.stop?
+          puts self.out_msg(:done, self.hub.store.has_file?)
         else
-          ret = Star::Message.out(:delfail)
+          puts self.out_msg(:delfail)
         end
-      else
-        ret = Star::Message.out(:startfail)
-      end
 
-      puts "\n#{ret}"
+      else
+        puts self.out_msg(:startfail)
+      end
     end
+
 
 
     def start!
-      self.make_file
-      if self.has_file
+      self.hub.store.make_file
+      if self.hub.store.has_file
         self.write_lines
+        self.hub.store.check_file!
       end
     end
+
 
 
     def write_lines
-      self.lines = [ ]
       Star::Demo.filler_lines.each do |arr|
-        self.lines.push(self.line_from_args!(arr))
+        line = Star::Line.new
+        line.fill_from_array arr
+        self.hub.store.append? line
       end
-      return super
     end
 
 
-    def stop
-      if self.has_file
-        File.delete(self.file_path)
-        self.check_file!
-        ret = (self.has_file) ? nil : true
+
+    def stop?
+      if self.hub.store.has_file
+        File.delete(self.hub.store.file_path)
+        self.hub.store.check_file!
+        ret = (self.hub.store.has_file) ? nil : true
       else
         ret = true
       end
@@ -104,28 +112,28 @@ module Star
 
 
     # Messages unique to the demo.
-    def out_msg(x = :bork, v = nil)
+    def out_msg( x = :bork, v = nil )
       x = :bork if !x.is_a? Symbol
 
-      if (x == :delfail)
-        ret = "Failed to delete the demo file, #{self.file_name}. Lame."
+      if x == :delfail
+        ret = "Failed to delete the demo file, #{self.hub.store.file_name}. Lame."
 
-      elsif (x == :done)
+      elsif x == :done
         if v.nil?
-          ret = "And that's how it works! To get started, type \"star -i\", or add a line with something like \"star -n what ever\"."
+          ret = "\nAnd that's how it works! To get started, type \"star -i\", or add a line with something like \"star -n what ever\"."
         else
-          ret = "Removed the demo file, #{self.file_name}."
+          ret = "\nRemoved the demo file, #{self.hub.store.file_name}."
         end
 
-      elsif (x == :start)
-        ret = "This is a demo of #{"star".bold}. It is running from a demo file, #{self.file_name}."
+      elsif x == :start
+        ret = "This is a demo of #{"star".bold}. It is running from a demo file."
         ret << " Your #{Star::Config.file_name} is safe." if v
 
-      elsif (x == :startfail)
+      elsif x == :startfail
         ret = "Unable to run the demo :("
 
       else
-        ret = super(x, v)
+        ret = Star::Message.out(x, v)
       end
 
       return ret

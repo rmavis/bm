@@ -51,13 +51,13 @@ module Star
         @path = File.dirname(p)
       end
 
-      @has_file, @nil_file = nil, nil
+      @bk_file, @has_file, @nil_file = nil, nil, nil
 
       self.fix_path_name
       self.check_file!
     end
 
-    attr_accessor :path, :name, :has_file, :nil_file
+    attr_accessor :path, :name, :bk_file, :has_file, :nil_file
 
 
 
@@ -100,10 +100,10 @@ module Star
       self.check_file!
 
       if self.has_file
-        puts Star::Message.out :init
+        puts Star::Message.out(:init, self.name)
         ret = true
       else
-        puts Star::Message.out :filefail
+        puts Star::Message.out(:filefail, self.name)
         ret = nil
       end
 
@@ -117,9 +117,10 @@ module Star
     end
 
 
-    def make_backup_file!
-      self.bk_file = self.file_path + Star::Store.backup_ext 
-      IO.copy_stream(self.file_path, self.bk_file)
+    def make_backup_file( ext = Star::Store.backup_ext, cp_file = true )
+      self.bk_file = self.file_path + ext
+      IO.copy_stream(self.file_path, self.bk_file) if cp_file
+      return self.bk_file
     end
 
     def delete_backup_file!
@@ -136,9 +137,9 @@ module Star
     def init_file
       if self.has_file
         if self.nil_file
-          puts Star::Message.out :fileempty
+          puts Star::Message.out(:fileempty, self.name)
         else
-          puts Star::Message.out :fileexists
+          puts Star::Message.out(:fileexists, self.name)
         end
 
       else

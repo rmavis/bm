@@ -24,8 +24,8 @@ module Star
       }
 
       # If there are no args, assume help is needed.
-      if ((!args.is_a? Array) or (args.is_a?(Array) and args.empty?))
-        ret[:act] = (demo.nil?) ? :commands : ret[:act]
+      if (((!args.is_a? Array) or (args.is_a?(Array) and args.empty?)) and demo.nil?)
+        ret[:act] = :commands
 
       else
         wantargs = true
@@ -45,7 +45,7 @@ module Star
           elsif ((x == "-l") or (x == "--loose"))
             ret[:filtmode] = :loose
           elsif ((x == "-m") or (x == "--demo"))
-            ret[:act] = :demo
+            ret[:act] = (demo) ? :demodup : :demo
           elsif ((x == "-n") or (x == "--new"))
             ret[:act] = :new
           elsif ((x == "-o") or (x == "--open"))
@@ -74,9 +74,6 @@ module Star
 
         ret[:act] = :read if ret[:act].nil?
         ret[:args] = args if wantargs
-
-        # No meta-demos allowed.
-        ret[:act] = :demodup if (demo) and (ret[:act] == :demo)
       end
 
       return ret

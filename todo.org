@@ -47,12 +47,12 @@
 
 
 
-* Demo [0/2]
-  - [ ] Write
-  - [ ] Debug
+* Demo [2/2]
+  - [X] Write
+  - [X] Debug
 
 
 
-* Help & Messages [1/2]
+* Help & Messages [2/2]
   - [X] Rewrite
-  - [ ] Debug
+  - [X] Debug

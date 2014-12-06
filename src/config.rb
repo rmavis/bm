@@ -13,7 +13,7 @@ module Star
 
     # This needs to include the path.
     def self.file_name
-      "~/.config/star/store"
+      "store"
     end
 
 

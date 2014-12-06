@@ -82,10 +82,21 @@ module Star
     end
 
 
-    def fill_from_args
-      if self.hub.args.is_a? Array
-        self.val.str = self.hub.args.pop.strip
-        self.tags.pool = self.hub.args
+    def fill_from_args( args = self.hub.args || [ ] )
+      if self.hub.is_a?(Star::Hub) and self.hub.args.is_a?(Array)
+        self.fill_from_array self.hub.args
+
+      else
+        # Should an error go #HERE?
+      end
+    end
+
+
+
+    def fill_from_array( arr = [ ] )
+      if arr.is_a?(Array) and !arr.empty?
+        self.val.str = arr.pop.strip
+        self.tags.pool = arr
         self.meta.ini
 
       else
@@ -95,11 +106,13 @@ module Star
 
 
 
-    # So searching "cohen" doesn't return a value tagged "leonard cohen"
-    # because the tag-match is only partial. So maybe there should be
-    # multiple grades of matches. Exact matches have the highest grade,
-    # and the returns are displayed and the array is ordered according
-    # to those grades.
+
+    # This method performs two functions.
+    # For each line, it checks if the value and tags contain the filters.
+    # If so, then it adds the match's MAR to the mars array.
+    # It also checks that the line matches the required number of matches.
+    # If the match mode is loose, then one match will suffice.
+    # Else, the line must match each tag.
 
     def matches?( filts = [ ], incluv = nil )
       ret = nil
@@ -110,37 +123,33 @@ module Star
 
         else
           goodlim = (incluv) ? 1 : filts.length
-          good = 0
 
           filts.each do |filt|
-            regex = '.*'
-            filt.downcase.each_char { |c| regex << c+'.*' }
-            tagmatch = nil
+            regex = '.*' + filt.downcase + '.*'
 
             if self.val.str.downcase.match(regex)
               mar = filt.length.to_f / self.val.str.length.to_f
-              self.adj_mar(mar)
-              tagmatch = true
+              self.add_mar(mar)
             end
 
             if !self.tags.pool.empty?
               self.tags.pool.each do |tag|
-                if tag.match(regex)
+                # puts "#{tag.downcase} & #{self.val.str.downcase} vs #{regex}"
+
+                if tag.downcase.match(regex)
                   mar = filt.length.to_f / tag.length.to_f
-                  self.adj_mar(mar)
-                  tagmatch = true
+                  self.add_mar(mar)
 
                 else
                   # puts "#{tag} doesn't match #{regex}"
-                  self.adj_mar
+                  self.add_mar
                 end
               end
             end
 
-            good += 1 if tagmatch
           end
 
-          ret = true if good >= goodlim
+          ret = true if self.matches >= goodlim
         end
       end
 
@@ -149,24 +158,48 @@ module Star
 
 
 
-    # MAR: Match Accuracy Rating
-    def mar
+    def matches
+      ret = 0
+      self.mars.each { |x| ret += 1 if x > 0 }
+      return ret
+    end
+
+
+
+    def add_mar( score = 0 )
+      self.mars.push(score)
+    end
+
+
+
+    # Average Match Accuracy Rating.
+    def avg_mar( adj = nil )
       ret = 0
 
       if self.mars.length > 0
         ttl = 0
         # puts "#{self.val.str}: #{self.mars.to_s}"
-        self.mars.each { |x| ttl += x }
-        ret = (ttl / self.mars.length)
+
+        if adj
+          self.mars.each do |mar|
+            ret = 1 if mar == 1
+            ttl += mar
+          end
+
+          ret = (ttl / self.mars.length) if ret == 0
+
+        else
+          self.mars.each { |x| ttl += x }
+          ret = (ttl / self.mars.length)
+        end
       end
 
       return ret
     end
 
 
-
-    def adj_mar( score = 0 )
-      self.mars.push(score)
+    def adj_mar
+      return self.avg_mar(true)
     end
 
 

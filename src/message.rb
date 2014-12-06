@@ -191,26 +191,27 @@ END
         ret = "No meta-demos, buster."
 
       elsif x == :fileempty
-        ret = "#{Star::Store.file_name} is empty. You can add lines with \"star -n what ever\"."
+        fn = (v) ? v : 'The store file'
+        ret = "#{fn} is empty. You can add lines with \"star -n what ever\"."
 
       elsif x == :fileexists
-        ret = "#{Star::Store.file_name} already exists."
+        fn = (v) ? v : 'The store file'
+        ret = "#{fn} already exists."
 
       elsif x == :filefail
-        ret = "Failed to create #{Star::Store.file_name} :("
+        fn = (v) ? v : 'the store file'
+        ret = "Failed to create #{fn} :("
 
       elsif x == :fileno
-        if v
-          ret = "Can't save to #{Star::Store.file_name} because it doesn't exist. Run \"star -i\"?"
-        else
-          ret = "Can't read #{Star::Store.file_name} because it doesn't exist. Run \"star -i\"?"
-        end
+        fn = (v) ? v : 'store file'
+        ret = "Can't read #{fn} because it doesn't exist. Run \"star -i\"?"
 
       elsif x == :init
-        ret = "Created #{Star::Store.file_name}."
+        ret = (v) ? "Created #{v}." : "Created store file."
 
       elsif x == :linesno
-        ret = "#{Star::Store.file_name} has no valid lines."
+        fn = (v) ? v : 'The store file'
+        ret = "#{fn} has no valid lines."
 
       elsif x == :matchno
         ret = "No lines match."
@@ -234,7 +235,8 @@ END
         ret = "Saved new line."
 
       elsif x == :valnah
-        ret = "Nothing wanted, nothing copied."
+        verb = (v == :copy) ? 'copied' : (v == :open) ? 'opened' : 'deleted'
+        ret = "Nothing wanted, nothing #{verb}."
 
       elsif x == :valno
         ret = "Unable to find the value on \"#{v}\"."
