@@ -39,17 +39,19 @@ module Star
 
 
     def initialize( args = [ ], demo = nil )
-      argh = Star::Args.parse(args, demo)
+      @config = Star::Config.new
+
+      argh = Star::Args.parse(args, demo, @config)
       @act, @args, @filter_mode = argh[:act], argh[:args], argh[:filtmode]
 
-      f_name = (demo.nil?) ? Star::Config.file_name : Star::Demo.file_name
+      f_name = (demo.nil?) ? @config.file_name : Star::Demo.file_name
       @store = Star::Store.new(f_name)
 
       @lines = Star::Lines.new self
     end
 
-    attr_reader :act, :args, :filter_mode
-    attr_accessor :store, :lines
+    attr_reader :act, :args, :config, :filter_mode
+    attr_accessor :lines, :store
 
 
 

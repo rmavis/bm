@@ -7,7 +7,7 @@ module Star
   class Args < Star::Hub
 
 
-    # Pass this the arguments array (ARGV) and it will return a
+    # Pass this the arguments array (ARGV), a  and it will return a
     # hash containing three keys:
     # - :act, indicating the action for the main routine to take
     #   This will be :open, :copy, :delete, :demo, etc.
@@ -16,12 +16,17 @@ module Star
     # - :filtmode, which, if not specified on the command line,
     #    will be the class default
 
-    def self.parse( args = [ ], demo = nil )
+    def self.parse( args = [ ], demo = nil, config = nil )
       ret = {
-        :act => Star::Config.pipe_to, 
+        :act => nil, 
         :args => [ ],
-        :filtmode => Star::Config.filter_mode
+        :filtmode => nil
       }
+
+      if config.is_a?(Star::Config)
+        ret[:act] = config.pipe_to
+        ret[:filtmode] = config.filter_mode
+      end
 
       # If there are no args, assume help is needed.
       if (((!args.is_a? Array) or (args.is_a?(Array) and args.empty?)) and demo.nil?)

@@ -39,7 +39,7 @@ module Star
         "If there's only one match, the value will be copied to your clipboard or opened. If there are multiple matches, then you'll be shown a numbered list of them and prompted for the one you want.".form_p(Star::Message.p_indent) +
 
         "#{"star".command} saves your text in a plain text file. The default location is".form_p(Star::Message.p_indent, nil) +
-        Star::Config.file_name.form_p(Star::Message.p_indent * 2, nil) +
+        Star::Config.store_file_name.form_p(Star::Message.p_indent * 2, nil) +
         "but you can change that if you want to.".form_p(Star::Message.p_indent) +
 
         "To see a list of commands:".form_p(Star::Message.p_indent, nil) +
@@ -60,7 +60,7 @@ module Star
   -c, --commands,
     -f, --flags    Show this message.
   -d, --delete     Delete a save.
-  -i, --init       Create the #{Star::Config.file_name} file.
+  -i, --init       Create the #{Star::Config.store_file_name} file.
   -l, --loose      Match loosely, rather than strictly.
   -m, --demo       Run the demo.
   -n, --new        Add a new line.
@@ -88,7 +88,7 @@ END
         "$ star -a".form_p(Star::Message.p_indent * 2, nil) +
         "You'll be prompted to enter the number of the line you want. That line will be piped to #{"pbcopy".command}, thereby copying it to your clipboard.".form_p(Star::Message.p_indent) +
 
-        "Save a new line to your #{Star::Config.file_name}:".form_p(Star::Message.p_indent, nil) +
+        "Save a new line to your #{Star::Config.store_file_name}:".form_p(Star::Message.p_indent, nil) +
         "$ star -n music \"Nils Frahm\" Screws http://screws.nilsfrahm.com/".form_p(Star::Message.p_indent * 2, nil) +
         "The URL is the value that will be piped to #{"pbcopy".command} or passed to #{"open".command}. The other parts of the line are the tags, which will be checked when you run other commands.".form_p(Star::Message.p_indent) +
 
@@ -105,7 +105,7 @@ END
         "Identical to #{"star music".command} but the value on the line you enter will be passed to #{"open".command}. So URLs should open in your default browser, files and directories should #{"open".command} as expected, etc.".form_p(Star::Message.p_indent, nil) +
         "$ star -o music".form_p(Star::Message.p_indent * 2) +
 
-        "Identical to #{"star music".command} but the matching line will be deleted from your #{Star::Config.file_name}.".form_p(Star::Message.p_indent, nil) +
+        "Identical to #{"star music".command} but the matching line will be deleted from your #{Star::Config.store_file_name}.".form_p(Star::Message.p_indent, nil) +
         "$ star -d music".form_p(Star::Message.p_indent * 2)
 
       return ret + "\n" + Star::Message.imp_note
@@ -117,7 +117,7 @@ END
       ret =
         "Important".header.form_p +
         "If only one save matches the tags you specify, then you will not be shown a numbered list of matches. Instead, that step will be skipped and the value will be copied, opened, or deleted accordingly.".form_p(Star::Message.p_indent) +
-        "So if only one save is tagged \"music\", then #{"star -o music".command} will pass the matching value to #{"open".command}, and #{"star -d music".command} will delete the save from your #{Star::Config.file_name}.".form_p(Star::Message.p_indent)
+        "So if only one save is tagged \"music\", then #{"star -o music".command} will pass the matching value to #{"open".command}, and #{"star -d music".command} will delete the save from your #{Star::Config.store_file_name}.".form_p(Star::Message.p_indent)
 
       return ret
     end
@@ -129,7 +129,7 @@ END
         "Extra".header.form_p +
         "If you feel list customizing #{"star".command}, you can edit the methods in #{__dir__}/config.rb.".form_p(Star::Message.p_indent, nil)
       ret << <<END
-    1. The file name, #{Star::Config.file_name}, is specified in Config::file_name
+    1. The file name, #{Star::Config.store_file_name}, is specified in Config::file_name
        If you change this, make sure you have write privileges.
     2. The default filter mode is specified in Config::filter_mode
        The value should be a symbol, either :strict or :loose

@@ -56,3 +56,20 @@
 * Help & Messages [2/2]
   - [X] Rewrite
   - [X] Debug
+
+
+
+* Config [2/2]
+  - [X] Remove from source file
+  - [X] Read/parse config file
+
+
+
+* Documentation [0/2]
+  - [ ] Rewrite messages
+  - [ ] Rewrite readme.md
+
+
+
+* Misc [0/1]
+  - [ ] Remove MAR from line

@@ -9,11 +9,11 @@ module Star
 
 
     def self.file_name
-      Star::Config.file_name
+      self.config.file_name
     end
 
     def self.file_path
-      File.expand_path(Star::Config.file_name)
+      File.expand_path(self.config.file_name)
     end
 
 
@@ -42,7 +42,7 @@ module Star
 
 
 
-    def initialize( file = Star::Config.file_name )
+    def initialize( file = self.config.file_name )
       @path, @name = '', ''
 
       if file.is_a? String

@@ -127,7 +127,7 @@ module Star
 
       elsif x == :start
         ret = "This is a demo of #{"star".bold}. It is running from a demo file."
-        ret << " Your #{Star::Config.file_name} is safe." if v
+        ret << " Your #{self.hub.config.file_name} is safe." if v
 
       elsif x == :startfail
         ret = "Unable to run the demo :("
