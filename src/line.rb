@@ -29,7 +29,7 @@ module Star
 
     def initialize( ini = nil )
       @val, @tags, @meta = Star::Value.new, Star::Tags.new, Star::Metadata.new
-      @str, @hub, @mars = nil, nil, [ ]
+      @str, @hub, @mars, @mlim = nil, nil, [ ], 0
 
       if ini.is_a? String
         @str = ini
@@ -40,7 +40,7 @@ module Star
     end
 
     attr_reader :hub
-    attr_accessor :str, :val, :tags, :meta, :mars
+    attr_accessor :str, :val, :tags, :meta, :mars, :mlim
 
 
 
@@ -117,39 +117,43 @@ module Star
     def matches?( filts = [ ], incluv = nil )
       ret = nil
 
+      self.mlim = (incluv.nil?) ? filts.length : 1
+      self.add_mar
+
       if !self.val.str.empty?
         if filts.empty?
           ret = true
 
         else
-          goodlim = (incluv) ? 1 : filts.length
+          pos = 0
 
           filts.each do |filt|
             regex = '.*' + filt.downcase + '.*'
 
             if self.val.str.downcase.match(regex)
               mar = filt.length.to_f / self.val.str.length.to_f
-              self.add_mar(mar)
+              # puts "val matches: #{self.val.str} (#{mar})"
+              self.add_mar(pos, mar)
             end
 
             if !self.tags.pool.empty?
               self.tags.pool.each do |tag|
-                # puts "#{tag.downcase} & #{self.val.str.downcase} vs #{regex}"
-
                 if tag.downcase.match(regex)
                   mar = filt.length.to_f / tag.length.to_f
-                  self.add_mar(mar)
+                  # puts "tag matches: #{tag} (#{mar})"
+                  self.add_mar(pos, mar)
 
                 else
-                  # puts "#{tag} doesn't match #{regex}"
-                  self.add_mar
+                  self.add_mar(pos)
                 end
               end
             end
 
+            pos += 1
           end
 
-          ret = true if self.matches >= goodlim
+          # puts "mars: #{self.mars}"
+          ret = true if self.match_lim?
         end
       end
 
@@ -158,16 +162,18 @@ module Star
 
 
 
-    def matches
-      ret = 0
-      self.mars.each { |x| ret += 1 if x > 0 }
-      return ret
+    def match_lim?
+      chk = 0
+      self.mars.each { |x| chk += 1 if x > 0 }
+      if (chk >= self.mlim) then true else nil end
     end
 
 
 
-    def add_mar( score = 0 )
-      self.mars.push(score)
+    def add_mar( pos = 0, score = 0 )
+      score = 0 if !score.is_a?(Numeric)
+      self.mars[pos] = 0 if self.mars[pos].nil?
+      self.mars[pos] = score if score > self.mars[pos]
     end
 
 
