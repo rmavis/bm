@@ -49,7 +49,7 @@ module Star
         filts = (args.empty?) ? [ ] : self.clean_args(args)
         incluv = self.hub.filter_inclusive?
 
-        fh = File.open(self.hub.store.file_path, 'r')
+        fh = File.open(self.hub.store.file, 'r')
         while l_str = fh.gets(Star::Utils.grp_sep)
           l_obj = Star::Line.new(l_str)
           if !l_obj.blank?
@@ -118,7 +118,7 @@ module Star
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{Star::Utils.clean(line.val.str)} (#{line.adj_mar})"  # 
+        puts "#{pre} #{Star::Utils.clean(line.val.str)}"  # (#{line.adj_mar})
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
           puts "#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}"
@@ -213,8 +213,8 @@ module Star
 
 
     def save_to_store
-      sav_file = self.hub.store.file_path
-      tmp_file = self.hub.store.make_backup_file(Star::Store.temp_ext, nil)
+      sav_file = self.hub.store.file
+      tmp_file = self.hub.store.make_backup_file(Star::Fileutils.temp_ext, nil)
 
       sav_f = File.open(sav_file, 'r')
       tmp_f = File.open(tmp_file, 'w')
@@ -256,15 +256,15 @@ module Star
     def why_none?
       if self.hub.store.has_file
         if self.hub.store.nil_file
-          ret = Star::Message.out(:fileempty, self.hub.store.name)
+          ret = Star::Message.out(:fileempty, self.hub.store.file)
         elsif self.hub.args.empty?
-          ret = Star::Message.out(:linesno, self.hub.store.name)
+          ret = Star::Message.out(:linesno, self.hub.store.file)
         else
           ret = Star::Message.out(:matchno)
         end
 
       else
-        ret = Star::Message.out(:fileno, self.hub.store.name)
+        ret = Star::Message.out(:fileno, self.hub.store.file)
       end
 
       return ret

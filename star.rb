@@ -32,20 +32,19 @@ module Star
 
 
     def self.required_files
-      %w{ args.rb config.rb demo.rb etc.rb line.rb lines.rb metadata.rb message.rb store.rb tags.rb utils.rb value.rb }
+      %w{ args.rb config.rb demo.rb etc.rb fileutils.rb line.rb lines.rb metadata.rb message.rb store.rb tags.rb utils.rb value.rb }
     end
 
 
 
 
     def initialize( args = [ ], demo = nil )
-      @config = Star::Config.new
+      @config = (demo.nil?) ? Star::Config.new : Star::Config.new(demo)
 
       argh = Star::Args.parse(args, demo, @config)
       @act, @args, @filter_mode = argh[:act], argh[:args], argh[:filtmode]
 
-      f_name = (demo.nil?) ? @config.file_name : Star::Demo.file_name
-      @store = Star::Store.new(f_name)
+      @store = Star::Store.new @config
 
       @lines = Star::Lines.new self
     end
@@ -83,10 +82,14 @@ module Star
         puts Star::Message.help_msg + "\n" + Star::Message.extra_notes
 
       elsif self.act == :init
+        self.config.save_settings
         self.store.init_file
 
       elsif self.act == :new
         Star::Line.new_from_args self
+
+      elsif self.act == :readx
+        puts Star::Message.readme + "\n" + Star::Message.extra_notes
 
       elsif self.act == :tags
         self.store.print_tags_report

@@ -1,8 +1,5 @@
 #
-# Configuration variables.
-#
-# If you want to change the default file, filter mode, or system call,
-# then change the value of one of these methods.
+# For configuration.
 #
 
 
@@ -49,6 +46,13 @@ module Star
 
     def self.default_pipe_to
       Star::Config.pipe_tos.first
+    end
+
+
+    def self.default_config_file
+      defs, ret = Star::Config.defaults, ''
+      defs.each { |sym,h| ret << "#{h[:key]}: #{h[:val].to_s}\n" }
+      return ret
     end
 
 
@@ -108,8 +112,13 @@ module Star
             chk = vars[h[:key]]
             # puts "Checking #{chk}"
 
+            #
+            # IMPORTANT
+            # Need to ensure that the values below are valid.
+            #
+
             if sym == :file_name
-              defs[sym] = chk
+              defs[sym] = (chk.nil?) ? Star::Config.store_file : chk
             elsif sym == :filter_mode
               defs[sym] = Star::Config.filter_mode_sym(chk)
             elsif sym == :pipe_to
@@ -123,20 +132,24 @@ module Star
           end
 
         end
+
+      else
+        defs.each { |sym,h| defs[sym] = h[:val] }          
       end
 
-      # puts defs
+      # puts "SETTINGS: #{defs}"
       return defs
     end
 
 
 
 
-    def initialize
-      @h = Star::Config.settings
+    def initialize( settings = nil )
+      @h = (settings.is_a? Hash) ? settings : Star::Config.settings
     end
 
     attr_reader :h
+
 
 
     def file_name
@@ -149,6 +162,48 @@ module Star
 
     def pipe_to
       self.h[:pipe_to]
+    end
+
+
+    def path
+      File.expand_path(Star::Config.config_dir)
+    end
+
+    def full_file_name
+      File.expand_path self.file_name
+    end
+
+
+
+    def save_settings
+      fu = Star::Fileutils.new(Star::Config.config_file)
+
+      if !fu.dir? or !fu.make_dir!
+        puts Star::Message.out(:conffail, fu.dir)
+
+      else
+        if fu.exists?
+          fh = File.open(fu.full, 'w+')
+        else
+          fh = File.new(fu.full, 'w+', 0600)
+        end
+
+        if fh
+          Star::Config.defaults.each do |sym,h|
+            fh.puts "#{h[:key]}: #{self.h[sym]}"
+          end
+          fh.close
+
+          if fu.exists?
+            puts Star::Message.out(:confok, fu.full)
+          else
+            puts Star::Message.out(:confnok)
+          end
+
+        else
+          puts Star::Message.out(:conffail)
+        end        
+      end
     end
 
   end

@@ -1,54 +1,23 @@
 #
-# Methods related to the file.
+# Methods related to the store file.
 #
 
 
 
 module Star
-  class Store < Star::Hub
+  class Store
 
 
-    def self.file_name
-      self.config.file_name
-    end
+    def initialize( conf = nil )
+      @conf, @futil = nil, nil
+      @file_path, @file_name = '', ''
 
-    def self.file_path
-      File.expand_path(self.config.file_name)
-    end
-
-
-    def self.backup_ext
-      ".bk"
-    end
-
-    def self.temp_ext
-      ".tmp"
-    end
-
-
-    def self.backup_file_name( ext = Star::Store.backup_ext )
-      Star::Store.file_name + ext
-    end
-
-    def self.backup_file_path( ext = Star::Store.backup_ext )
-      File.expand_path(Star::Store.backup_file_name(ext))
-    end
-
-
-    def self.has_file?
-      if File.file?(Star::Store.file_path) then true else nil end
-    end
-
-
-
-
-    def initialize( file = self.config.file_name )
-      @path, @name = '', ''
-
-      if file.is_a? String
-        p = File.expand_path(file)
-        @name = File.basename(p)
-        @path = File.dirname(p)
+      if conf.is_a? Star::Config
+        @conf = conf
+        p = File.expand_path @conf.file_name
+        @file_name = File.basename p
+        @file_path = File.dirname p
+        @futil = Star::Fileutils.new @conf.file_name
       end
 
       @bk_file, @has_file, @nil_file = nil, nil, nil
@@ -57,53 +26,35 @@ module Star
       self.check_file!
     end
 
-    attr_accessor :path, :name, :bk_file, :has_file, :nil_file
+    attr_reader :conf, :futil
+    attr_accessor :file_path, :file_name, :bk_file, :has_file, :nil_file
 
 
 
-    def file_path
-      self.path + self.name
+    def file
+      self.file_path + '/' + self.file_name
     end
 
 
     def fix_path_name
-      p = self.path.strip
-      self.path << '/' if !p.end_with?('/')
-      return self.path
+      p = self.file_path.strip
+      p = p.chomp('/') if p.end_with?('/')
+      return self.file_path
     end
-
-
-    def has_file?
-      if File.file?(self.file_path) then true else nil end
-    end
-
-    def has_path?
-      if Dir.exists?(self.path) then true else nil end
-    end
-
-    def file_empty?
-      if File.zero?(self.file_path) then true else nil end
-    end
-
-    def check_file!
-      self.has_file = self.has_file?
-      self.nil_file = self.file_empty?
-    end
-
 
 
     def make_file
-      if self.has_path? or self.make_path
-        File.new(self.file_path, 'w+', 0600)
+      if self.futil.dir? or self.futil.make_dir!
+        self.futil.make!
       end
 
       self.check_file!
 
       if self.has_file
-        puts Star::Message.out(:init, self.name)
+        puts Star::Message.out(:init, self.file)
         ret = true
       else
-        puts Star::Message.out(:filefail, self.name)
+        puts Star::Message.out(:filefail, self.file)
         ret = nil
       end
 
@@ -111,15 +62,20 @@ module Star
     end
 
 
-    def make_path
-      Dir.mkdir(self.path) if !self.has_path?
-      return self.has_path?
+    def check_file!
+      self.has_file = self.has_file?
+      self.nil_file = self.file_empty?
     end
 
+    def has_path?;  self.futil.dir? end
+    def has_file?;  self.futil.exists? end
+    def file_empty?; self.futil.empty? end
 
-    def make_backup_file( ext = Star::Store.backup_ext, cp_file = true )
-      self.bk_file = self.file_path + ext
-      IO.copy_stream(self.file_path, self.bk_file) if cp_file
+
+
+    def make_backup_file( ext = Star::Fileutils.backup_ext, cp_file = true )
+      self.bk_file = self.file + ext
+      IO.copy_stream(self.file, self.bk_file) if cp_file
       return self.bk_file
     end
 
@@ -137,9 +93,9 @@ module Star
     def init_file
       if self.has_file
         if self.nil_file
-          puts Star::Message.out(:fileempty, self.name)
+          puts Star::Message.out(:fileempty, self.file)
         else
-          puts Star::Message.out(:fileexists, self.name)
+          puts Star::Message.out(:fileexists, self.file)
         end
 
       else
@@ -155,7 +111,7 @@ module Star
       self.make_file if !self.has_file?
 
       if self.has_file and line.is_a?(Star::Line)
-        fh = File.open(self.file_path, 'a')
+        fh = File.open(self.file, 'a')
         fh.puts line.to_s(true)
         fh.close
         ret = true
@@ -173,7 +129,11 @@ module Star
 
     def print_tags_report
       tags = self.cull_tags
-      tags.each { |tag,count| puts "#{tag} (#{count})" }
+      if tags.empty?
+        puts Star::Message.out(:tagsno)
+      else
+        tags.each { |tag,count| puts "#{tag} (#{count})" }
+      end
     end
 
 
@@ -181,7 +141,7 @@ module Star
       ret = { }
 
       if self.has_file and !self.nil_file
-        fh = File.open(self.file_path, 'r')
+        fh = File.open(self.file, 'r')
 
         while l_str = fh.gets(Star::Utils.grp_sep)
           l_obj = Star::Line.new(l_str)

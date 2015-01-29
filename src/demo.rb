@@ -10,15 +10,24 @@ module Star
 
 
     def self.file_path
-      Star::Store.backup_file_path(Star::Demo.file_ext)
+      "~"
     end
 
     def self.file_name
-      Star::Store.backup_file_name(Star::Demo.file_ext)
+      ".star.store.demo"
     end
 
-    def self.file_ext
-      ".demo"
+    def self.file
+      File.expand_path(Star::Demo.file_path + '/' + Star::Demo.file_name)
+    end
+
+
+    def self.config_settings
+      {
+        :file_name => Star::Demo.file,
+        :filter_mode => Star::Config.default_filter_mode,
+        :pipe_to => Star::Config.default_pipe_to
+      }
     end
 
 
@@ -49,7 +58,7 @@ module Star
 
 
     def initialize( args )
-      @hub = Star::Hub.new(args, true)
+      @hub = Star::Hub.new(args, Star::Demo.config_settings)
     end
 
     attr_accessor :hub
@@ -60,7 +69,7 @@ module Star
       self.start!
 
       if self.hub.store.has_file
-        puts "#{self.out_msg(:start, self.hub.store.has_file?)}\n\n"
+        puts self.out_msg(:start, self.hub.store.has_file?)
 
         self.hub.main
 
@@ -98,13 +107,15 @@ module Star
 
 
     def stop?
-      if self.hub.store.has_file
-        File.delete(self.hub.store.file_path)
+      if self.hub.store.has_file?
+        File.delete(self.hub.store.file)
         self.hub.store.check_file!
         ret = (self.hub.store.has_file) ? nil : true
       else
         ret = true
       end
+
+      puts self.out_msg(:delok) if ret
 
       return ret
     end
@@ -116,18 +127,20 @@ module Star
       x = :bork if !x.is_a? Symbol
 
       if x == :delfail
-        ret = "Failed to delete the demo file, #{self.hub.store.file_name}. Lame."
+        ret = "Failed to delete the demo file, #{self.hub.store.file}. Lame."
+
+      elsif x == :delok
+        ret = "\nDelete the demo file, #{self.hub.store.file}."
 
       elsif x == :done
         if v.nil?
           ret = "\nAnd that's how it works! To get started, type \"star -i\", or add a line with something like \"star -n what ever\"."
         else
-          ret = "\nRemoved the demo file, #{self.hub.store.file_name}."
+          ret = "\nRemoved the demo file, #{self.hub.store.file}."
         end
 
       elsif x == :start
-        ret = "This is a demo of #{"star".bold}. It is running from a demo file."
-        ret << " Your #{self.hub.config.file_name} is safe." if v
+        ret = "This is a demo. It is using a demo file at #{self.hub.store.file}.\n\n"
 
       elsif x == :startfail
         ret = "Unable to run the demo :("

@@ -50,7 +50,7 @@ module Star
           elsif ((x == "-l") or (x == "--loose"))
             ret[:filtmode] = :loose
           elsif ((x == "-m") or (x == "--demo"))
-            ret[:act] = (demo) ? :demodup : :demo
+            ret[:act] = (demo.nil?) ? :demo : :demodup
           elsif ((x == "-n") or (x == "--new"))
             ret[:act] = :new
           elsif ((x == "-o") or (x == "--open"))
@@ -60,9 +60,10 @@ module Star
           elsif ((x == "-r") or (x == "--readme") or
                  (x == "-h") or (x == "--help"))
             ret[:act], wantargs = :help, nil
-          elsif ((x == "-rx") or (x == "-xr") or
-                 (x == "-hx") or (x == "-xh"))
+          elsif ((x == "-hx") or (x == "-xh"))
             ret[:act], wantargs = :helpx, nil
+          elsif ((x == "-rx") or (x == "-xr"))
+            ret[:act], wantargs = :readx, nil
           elsif ((x == "-s") or (x == "--strict"))
             ret[:filtmode] = :strict
           elsif ((x == "-t") or (x == "--tags"))
