@@ -29,7 +29,7 @@ module Star
 
     def initialize( ini = nil )
       @val, @tags, @meta = Star::Value.new, Star::Tags.new, Star::Metadata.new
-      @str, @hub, @mars, @mlim = nil, nil, [ ], 0
+      @str, @hub, @mars, @mar, @mlim = nil, nil, [ ], 0, 0
 
       if ini.is_a? String
         @str = ini
@@ -40,7 +40,7 @@ module Star
     end
 
     attr_reader :hub
-    attr_accessor :str, :val, :tags, :meta, :mars, :mlim
+    attr_accessor :str, :val, :tags, :meta, :mars, :mar, :mlim
 
 
 
@@ -127,33 +127,62 @@ module Star
         else
           pos = 0
 
-          filts.each do |filt|
-            regex = '.*' + filt.downcase + '.*'
+          if incluv.nil?  # Strict.
+            filts.each do |filt|
 
-            if self.val.str.downcase.match(regex)
-              mar = filt.length.to_f / self.val.str.length.to_f
-              # puts "val matches: #{self.val.str} (#{mar})"
-              self.add_mar(pos, mar)
-            end
+              regex = '\W' + filt.downcase + '\W'
+              if self.val.str.downcase.match(regex)
+                mar = filt.length.to_f / self.val.str.length.to_f
+                self.add_mar(pos, mar)
+              end
 
-            if !self.tags.pool.empty?
-              self.tags.pool.each do |tag|
-                if tag.downcase.match(regex)
-                  mar = filt.length.to_f / tag.length.to_f
-                  # puts "tag matches: #{tag} (#{mar})"
-                  self.add_mar(pos, mar)
-
-                else
-                  self.add_mar(pos)
+              if !self.tags.pool.empty?
+                self.tags.pool.each do |tag|
+                  if tag.downcase == filt
+                    mar = filt.length.to_f / tag.length.to_f
+                    self.add_mar(pos, mar)
+                  else
+                    self.add_mar(pos)
+                  end
                 end
               end
+
+              pos += 1
             end
 
-            pos += 1
+          else  # Loose.
+            filts.each do |filt|
+              regex = '.*' + filt.downcase + '.*'
+
+              if self.val.str.downcase.match(regex)
+                mar = filt.length.to_f / self.val.str.length.to_f
+                # puts "val matches: #{self.val.str} (#{mar})"
+                self.add_mar(pos, mar)
+              end
+
+              if !self.tags.pool.empty?
+                self.tags.pool.each do |tag|
+                  if tag.downcase.match(regex)
+                    mar = filt.length.to_f / tag.length.to_f
+                    # puts "tag matches: #{tag} (#{mar})"
+                    self.add_mar(pos, mar)
+
+                  else
+                    self.add_mar(pos)
+                  end
+                end
+              end
+
+              pos += 1
+            end
+
           end
 
-          # puts "mars: #{self.mars}"
-          ret = true if self.match_lim?
+          if self.match_lim?(incluv)
+            self.avg_mars!
+            ret = true
+            # puts "mars: #{self.mars} // avgmar: #{self.mar} // val: (#{self.val.str})"
+          end
         end
       end
 
@@ -162,9 +191,15 @@ module Star
 
 
 
-    def match_lim?
-      chk = 0
-      self.mars.each { |x| chk += 1 if x > 0 }
+    def match_lim?( incluv = nil )
+      chk = 0.0
+
+      if incluv
+        self.mars.each { |x| chk += 1 if x > 0 }
+      else
+        self.mars.each { |x| chk += x }
+      end
+
       if (chk >= self.mlim) then true else nil end
     end
 
@@ -179,35 +214,17 @@ module Star
 
 
     # Average Match Accuracy Rating.
-    def avg_mar( adj = nil )
-      ret = 0
+    def avg_mars!
+      ret, ttl = 0.0, 0.0
 
       if self.mars.length > 0
-        ttl = 0
-        # puts "#{self.val.str}: #{self.mars.to_s}"
-
-        if adj
-          self.mars.each do |mar|
-            ret = 1 if mar == 1
-            ttl += mar
-          end
-
-          ret = (ttl / self.mars.length) if ret == 0
-
-        else
-          self.mars.each { |x| ttl += x }
-          ret = (ttl / self.mars.length)
-        end
+        self.mars.each { |x| ttl += x }
+        ret = (ttl / self.mars.length)
       end
 
-      return ret
+      self.mar = ret
+      return self.mar
     end
-
-
-    def adj_mar
-      return self.avg_mar(true)
-    end
-
 
   end
 end

@@ -68,15 +68,15 @@ module Star
     def sort!
       l_arr, m_arr = [ ], [ ]
       self.pool.each do |line|
-        m_arr.push(line.adj_mar)
-        l_arr.push(line)
+        m_arr.push line.mar
+        l_arr.push line
       end
 
       m_arr, out = m_arr.sort, [ ]
       m_arr.each do |mar|
         l_arr.each do |line|
-          if line.adj_mar == mar
-            out.push(line)
+          if line.mar == mar
+            out.push line
             l_arr.delete(line)
           end
         end
@@ -118,7 +118,7 @@ module Star
         y = x - n.to_s.length
         spc = (y > 0) ? (' ' * y) : ''
         pre = "#{spc}#{n})"
-        puts "#{pre} #{Star::Utils.clean(line.val.str)}"  # (#{line.adj_mar})
+        puts "#{pre} #{Star::Utils.clean(line.val.str)}"  # (#{line.mar})
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
           puts "#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}"
