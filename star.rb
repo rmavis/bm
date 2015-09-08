@@ -14,7 +14,7 @@ module Star
     # If it weren't for this one, all would be nothing.
     def self.with( args = [ ] )
       Star::Hub.require_files
-      star = Star::Hub.new args
+      star = Star::Hub.new(args)
       star.main
     end
 
@@ -22,8 +22,8 @@ module Star
     def self.require_files
       Star::Hub.required_files.each do |req|
         req = "#{__dir__}/src/#{req}"
-        if File.exists? req
-          require_relative req
+        if File.exists?(req)
+          require_relative(req)
         else
           raise Exception.new("Can't run star: missing required file '#{req}'.")
         end
@@ -32,7 +32,21 @@ module Star
 
 
     def self.required_files
-      %w{ args.rb config.rb demo.rb etc.rb fileutils.rb line.rb lines.rb metadata.rb message.rb store.rb tags.rb utils.rb value.rb }
+      return [
+        'args.rb',
+        'config.rb',
+        'demo.rb',
+        'etc.rb',
+        'fileutils.rb',
+        'line.rb',
+        'lines.rb',
+        'metadata.rb',
+        'message.rb',
+        'store.rb',
+        'tags.rb',
+        'utils.rb',
+        'value.rb'
+      ]
     end
 
 
@@ -44,9 +58,9 @@ module Star
       argh = Star::Args.parse(args, demo, @config)
       @act, @args, @filter_mode = argh[:act], argh[:args], argh[:filtmode]
 
-      @store = Star::Store.new @config
+      @store = Star::Store.new(@config)
 
-      @lines = Star::Lines.new self
+      @lines = Star::Lines.new(self)
     end
 
     attr_reader :act, :args, :config, :filter_mode
@@ -55,10 +69,13 @@ module Star
 
 
     def main
-      if ((self.act == :copy) or
-          (self.act == :open) or
+      if ((self.act == :copy) ||
+          (self.act == :open) ||
           (self.act == :delete))
         self.lines.cull
+
+      elsif self.act == :edit
+        self.lines.edit
 
       elsif self.act == :commands
         puts Star::Message.show_commands
@@ -86,7 +103,7 @@ module Star
         self.store.init_file
 
       elsif self.act == :new
-        Star::Line.new_from_args self
+        Star::Line.new_from_args(self)
 
       elsif self.act == :readx
         puts Star::Message.readme + "\n" + Star::Message.extra_notes

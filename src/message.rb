@@ -68,6 +68,7 @@ module Star
     -f, --flags,
     -h, --help     Show this message.
   -d, --delete     Delete an entry.
+  -e, --edit       Edit an entry.
   -i, --init       Create the #{Star::Config.store_file} file.
   -l, --loose      Match loosely, rather than strictly.
   -m, --demo       Run the demo.
@@ -113,7 +114,10 @@ END
         "$ star -o music".form_p(Star::Message.p_indent * 2) +
 
         "Identical to #{"star music".command} but the matching entry will be deleted from your #{Star::Config.store_file}.".form_p(Star::Message.p_indent, nil) +
-        "$ star -d music".form_p(Star::Message.p_indent * 2)
+        "$ star -d music".form_p(Star::Message.p_indent * 2) +
+
+        "Edit all entries tagged \"music\" in your $EDITOR.".form_p(Star::Message.p_indent, nil) +
+        "$ star -e music".form_p(Star::Message.p_indent * 2)
 
       return ret + "\n" + Star::Message.imp_note
     end
@@ -134,10 +138,12 @@ END
     def self.extra_notes
       ret =
         "Extra".header.form_p +
-        "If you feel list customizing #{"star".command}, you can edit the config file. It's a YAML file located at #{Star::Config.config_file}. There are three entries:".form_p(Star::Message.p_indent, nil) +
+        "If you feel list customizing #{"star".command}, you can edit the config file. It's a YAML file located at #{Star::Config.config_file}. There are five entries:".form_p(Star::Message.p_indent, nil) +
         "file_name: path/to/store/file".form_p(Star::Message.p_indent * 2, nil) +
         "filter_mode: either `strict' or `loose'".form_p(Star::Message.p_indent * 2, nil) +
         "pipe_to: either `copy' or `open'".form_p(Star::Message.p_indent * 2) +
+        "edit_header_message: true or false".form_p(Star::Message.p_indent * 2) +
+        "edit_extra_space: true or false".form_p(Star::Message.p_indent * 2) +
 
         "Here's an example:".form_p(Star::Message.p_indent, nil)
       Star::Config.default_config_file.each_line { |ln| ret << ln.form_p(Star::Message.p_indent * 2, nil) }
@@ -157,6 +163,33 @@ END
         "C-q 036 <RET>".form_p(Star::Message.p_indent * 2, nil) +
         "And the unit separator with:".form_p(Star::Message.p_indent , nil) +
         "C-q 037 <RET>".form_p(Star::Message.p_indent * 2)
+
+      return ret
+    end
+
+
+
+    def self.edit_file_instructions
+      ret = <<END
+# STAR will read this file and update its store with the new values.
+# 
+# An entry in the store file includes two lines in this file, so STAR
+# will expect to read lines from this file in pairs that look like:
+#
+#   1) http://settlement.arc.nasa.gov/70sArtHiRes/70sArt/art.html
+#      Tags: art, NASA, space
+#
+# Those parts are:
+# - a number followed by a closing parenthesis
+# - the entry, being the string that gets copied or opened
+# - the tags, being a comma-separated list
+#
+# You can remove entries from the store file by deleting the line
+# pairs, and you can add entries by creating more.
+#
+# Lines that start with a pound sign will be ignored.
+
+END
 
       return ret
     end
@@ -245,13 +278,23 @@ END
         ret = "Failed to save new entry :("
 
       elsif x == :saveok
-        ret = "Saved new entry."
+        if v
+          ret = "Saved new entry \"#{v}\"."
+        else
+          ret = "Saved new entry."
+        end
 
       elsif x == :tagsno
         ret = "There are no tags."
 
       elsif x == :valnah
-        verb = (v == :copy) ? 'copied' : (v == :open) ? 'opened' : 'deleted'
+        if v == :copy
+          verb = 'copied'
+        elsif v == :open
+          verb = 'opened'
+        else
+          verb = 'deleted'
+        end
         ret = "Nothing wanted, nothing #{verb}."
 
       elsif x == :valno

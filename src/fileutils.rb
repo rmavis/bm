@@ -16,14 +16,27 @@ module Star
       ".tmp"
     end
 
+    def self.temp_dir
+      "/tmp"
+    end
+
+    def self.user_fx_file( fx = 'edit' )
+      "#{`whoami`.chomp}_star_#{fx}_#{Time.now.to_i}#{Star::Fileutils.temp_ext}"
+    end
+
+    def self.fx_file( fx = 'edit' )
+      "#{Star::Fileutils.temp_dir}/#{Star::Fileutils.user_fx_file(fx)}"
+    end
+
 
 
 
     def initialize( f_name = nil )
-      if f_name.is_a? String
-        @full = File.expand_path f_name
-        @name = File.basename @full
-        @dir = File.dirname @full
+      if f_name.is_a?(String)
+        @full = File.expand_path(f_name)
+        @name = File.basename(@full)
+        @dir = File.dirname(@full)
+
       else
         raise Exception.new("Can't create new Star::File: no name given.")
       end

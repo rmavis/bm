@@ -7,7 +7,7 @@ module Star
   class Args < Star::Hub
 
 
-    # Pass this the arguments array (ARGV), a  and it will return a
+    # Pass this the arguments array (ARGV), and it will return a
     # hash containing three keys:
     # - :act, indicating the action for the main routine to take
     #   This will be :open, :copy, :delete, :demo, etc.
@@ -29,47 +29,65 @@ module Star
       end
 
       # If there are no args, assume help is needed.
-      if (((!args.is_a? Array) or (args.is_a?(Array) and args.empty?)) and demo.nil?)
+      if ((!args.is_a?(Array) || (args.is_a?(Array) && args.empty?)) && demo.nil?)
         ret[:act] = :commands
 
       else
         wantargs = true
 
-        while args[0].is_a? String and args[0].match(/^-+[a-z]+/)
+        while args[0].is_a?(String) && args[0].match(/^-+[a-z]+/)
           x = args[0].downcase.strip
 
-          if ((x == "-a") or (x == "--all"))
+          if ((x == "-a") || (x == "--all"))
             wantargs = nil
-          elsif ((x == "-c") or (x == "--commands") or
-                 (x == "-f") or (x == "--flags"))
+
+          elsif ((x == "-c") || (x == "--commands") ||
+                 (x == "-f") || (x == "--flags"))
             ret[:act], wantargs = :commands, nil
-          elsif ((x == "-d") or (x == "--delete"))
+
+          elsif ((x == "-e") || (x == "--edit"))
+            ret[:act] = :edit
+
+          elsif ((x == "-d") || (x == "--delete"))
             ret[:act] = :delete
-          elsif ((x == "-i") or (x == "--init"))
+
+          elsif ((x == "-i") || (x == "--init"))
             ret[:act] = :init
-          elsif ((x == "-l") or (x == "--loose"))
+
+          elsif ((x == "-l") || (x == "--loose"))
             ret[:filtmode] = :loose
-          elsif ((x == "-m") or (x == "--demo"))
+
+          elsif ((x == "-m") || (x == "--demo"))
             ret[:act] = (demo.nil?) ? :demo : :demodup
-          elsif ((x == "-n") or (x == "--new"))
+
+          elsif ((x == "-n") || (x == "--new"))
             ret[:act] = :new
-          elsif ((x == "-o") or (x == "--open"))
+
+          elsif ((x == "-o") || (x == "--open"))
             ret[:act] = :open
-          elsif ((x == "-p") or (x == "--copy"))
+
+          elsif ((x == "-p") || (x == "--copy"))
             ret[:act] = :copy
-          elsif ((x == "-r") or (x == "--readme") or
-                 (x == "-h") or (x == "--help"))
+
+          elsif ((x == "-r") || (x == "--readme") ||
+                 (x == "-h") || (x == "--help"))
             ret[:act], wantargs = :help, nil
-          elsif ((x == "-hx") or (x == "-xh"))
+
+          elsif ((x == "-hx") || (x == "-xh"))
             ret[:act], wantargs = :helpx, nil
-          elsif ((x == "-rx") or (x == "-xr"))
+
+          elsif ((x == "-rx") || (x == "-xr"))
             ret[:act], wantargs = :readx, nil
-          elsif ((x == "-s") or (x == "--strict"))
+
+          elsif ((x == "-s") || (x == "--strict"))
             ret[:filtmode] = :strict
-          elsif ((x == "-t") or (x == "--tags"))
+
+          elsif ((x == "-t") || (x == "--tags"))
             ret[:act] = :tags
-          elsif ((x == "-x") or (x == "--examples"))
+
+          elsif ((x == "-x") || (x == "--examples"))
             ret[:act] = :examples
+
           elsif (x.match(/^-+[a-z]+/))
             ret[:act] = :err
           end
@@ -91,7 +109,7 @@ module Star
     def self.parse_lines_prompt( str = '' )
       ret = nil
 
-      if str.is_a? String
+      if str.is_a?(String)
         str = str.gsub(/[^0-9]+/, ' ').squeeze(' ').strip
 
         if str.empty?

@@ -16,15 +16,20 @@ module Star
 
 
     def initialize( str = nil )
-      @str = (str.is_a? String) ? str : nil
+      @str = (str.is_a?(String)) ? str : nil
+      @swap = nil
     end
 
-    attr_accessor :str
+    attr_accessor :str, :swap
 
 
 
     def downcase
-      if (self.str.is_a? String) then self.str.downcase else '' end
+      if self.str.is_a?(String)
+        return self.str.downcase
+      else
+        return ''
+      end
     end
 
 
@@ -33,8 +38,8 @@ module Star
     def chop_val!
       ret, str = nil, self.line
 
-      if str.is_a? String
-        ret = (str.include? Star.unit_sep) ? str.split(Star.unit_sep).last : str
+      if str.is_a?(String)
+        ret = (str.include?(Star.unit_sep)) ? str.split(Star.unit_sep).last : str
         ret = ret.strip
       end
 
@@ -55,7 +60,7 @@ module Star
     def sys_copy
       ret = nil
 
-      if self.str.is_a? String
+      if self.str.is_a?(String)
         # Echo's -n flag doesn't work as expected here. It gets copied.
         #chk = system("echo -n \"#{str}\" | pbcopy")
         chk = system("printf \"#{self.str.gsub(/%/, '%%')}\" | pbcopy")
@@ -79,7 +84,7 @@ module Star
     def sys_open
       ret = nil
 
-      if self.str.is_a? String
+      if self.str.is_a?(String)
         chk = system("open \"#{self.str}\"")
         ret = (chk) ? true : nil
       end

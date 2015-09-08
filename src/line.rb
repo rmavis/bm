@@ -8,15 +8,15 @@ module Star
 
 
     def self.new_from_args( hub )
-      if hub.is_a? Star::Hub
+      if hub.is_a?(Star::Hub)
 
-        line = Star::Line.new hub
+        line = Star::Line.new(hub)
         line.fill_from_args
 
-        if hub.store.append? line
-          puts Star::Message.out :saveok
+        if hub.store.append?(line)
+          puts Star::Message.out(:saveok)
         else
-          puts Star::Message.out :savefail
+          puts Star::Message.out(:savefail)
         end
 
       else
@@ -26,21 +26,32 @@ module Star
 
 
 
+    def self.edit_line_parts
+      return {
+        :index => nil,
+        :value => nil,
+        :tags => nil
+      }
+    end
+
+
+
 
     def initialize( ini = nil )
       @val, @tags, @meta = Star::Value.new, Star::Tags.new, Star::Metadata.new
       @str, @hub, @mars, @mar, @mlim = nil, nil, [ ], 0, 0
+      @del = nil
 
-      if ini.is_a? String
+      if ini.is_a?(String)
         @str = ini
         self.from_s
-      elsif ini.is_a? Star::Hub
+      elsif ini.is_a?(Star::Hub)
         @hub = ini
       end
     end
 
     attr_reader :hub
-    attr_accessor :str, :val, :tags, :meta, :mars, :mar, :mlim
+    attr_accessor :str, :val, :tags, :meta, :mars, :mar, :mlim, :del
 
 
 
@@ -50,11 +61,19 @@ module Star
 
 
 
-    def to_s( add_sep = nil )
-      str =
-        self.val.str + Star::Utils.rec_sep +
-        self.tags.to_s + Star::Utils.rec_sep +
-        self.meta.to_s
+    def to_s( add_sep = nil, use_swaps = nil )
+      if use_swaps
+        str =
+          self.val.swap + Star::Utils.rec_sep +
+          self.tags.to_s(use_swaps) + Star::Utils.rec_sep +
+          self.meta.to_s
+
+      else
+        str =
+          self.val.str + Star::Utils.rec_sep +
+          self.tags.to_s + Star::Utils.rec_sep +
+          self.meta.to_s
+      end
 
       str << Star::Utils.grp_sep if add_sep
 
@@ -64,9 +83,9 @@ module Star
 
 
     def from_s
-      arr = self.str.split Star::Utils.rec_sep
+      arr = self.str.split(Star::Utils.rec_sep)
 
-      if arr.is_a? Array
+      if arr.is_a?(Array)
         if arr.length == 3
           self.val.str = arr[0].strip
           self.tags.from_s(arr[1])
@@ -83,8 +102,8 @@ module Star
 
 
     def fill_from_args( args = self.hub.args || [ ] )
-      if self.hub.is_a?(Star::Hub) and self.hub.args.is_a?(Array)
-        self.fill_from_array self.hub.args
+      if self.hub.is_a?(Star::Hub) && self.hub.args.is_a?(Array)
+        self.fill_from_array(self.hub.args)
 
       else
         # Should an error go #HERE?
@@ -94,7 +113,7 @@ module Star
 
 
     def fill_from_array( arr = [ ] )
-      if arr.is_a?(Array) and !arr.empty?
+      if arr.is_a?(Array) && !arr.empty?
         self.val.str = arr.pop.strip
         self.tags.pool = arr
         self.meta.ini

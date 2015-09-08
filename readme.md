@@ -12,31 +12,35 @@ Then, when you want to read about those creepy cool animals again, you can type:
 
 	$ star Tardigrade
 
-And, assuming you haven't saved anything else that includes the word "Tardigrade", `star` will copy the URL to your clipboard. Or you can type:
+And, assuming you haven't saved anything else that includes the word "Tardigrade", `star` will copy that URL to your clipboard. Or you can type:
 
 	$ star -o Tardigrade
 
 and the URL will be opened in your default browser.
 
-To help with retrieving things later, you can tag can your saves by entering words before the value you want to copy or open. So say you want to tag Wikipedia's page on the Flammarion Engraving with "wiki" and "art":
+To help with retrieving things later, you can tag can your entries by entering words before the value you want to copy or open. So say you want to tag Wikipedia's page on the Flammarion Engraving with "wiki" and "art":
 
 	$ star -n wiki art http://en.wikipedia.org/wiki/Flammarion_engraving
 
-To see all your saves tagged "wiki":
+To see all your entries tagged "wiki":
 
 	$ star wiki
 
-To see all your saves tagged both "wiki" and "art":
+To see all your entries tagged both "wiki" and "art":
 
 	$ star wiki art
 
-To see all your saves tagged either "wiki" or "art":
+To see all your entries tagged either "wiki" or "art":
 
 	$ star -l wiki art
 
-If there are more than one saves that match the tags, then you'll be shown a numbered list of them and prompted for the one you want. The text on the numbered line will be copied to your clipboard. Tags will be listed beneath the numbered line. And if there's only one match, you'll skip the browsing step. You can see some examples [here][rfmstar].
+If there are more than one entries that match the tags, then you'll be shown a numbered list of them and prompted for the one you want. The text on the numbered line will be copied to your clipboard. Tags will be listed beneath the numbered line. And if there's only one match, you'll skip the browsing step. You can see some examples [here][rfmstar].
 
-`star` saves your text in a plain text file at ~/.star, so you can add, edit, and remove values in your editor of choice. You can also delete values with:
+`star` saves your text in a plain text file, by default at ~/.config/star/store but you can change that. You can edit, add, and remove values in your editor of choice with:
+
+    $ star -e
+
+You can also delete values with:
 
 	$ star -d
 
@@ -47,32 +51,6 @@ To see a list of commands:
 And to run a little demo:
 
 	$ star --demo
-
-
-
-## And more
-
-If you feel list customizing `star`, there are three class methods toward the top of the file that you can change:
-
-1. The file name, ~/.star, is specified in `STAR::file_name`. If you change this, make sure you have write privileges.
-2. The default filter mode is specified in `STAR::default_filter_mode`. The value should be a symbol, either `:strict` or `:loose`.
-3. The default system action is specified in `STAR::default_pipe_to`. The value should be a symbol, either `:copy` or `:open`.
-
-`star` uses the non-printing ASCII record and unit separator characters when saving your data. The record separator separates each "line". Each line holds the value that will be copied or opened along with any tags. If there are tags, they will be separated from the value and from each other by the unit separator. The value is the last slot in that line. Something like this:
-
-	wiki^_art^_http://en.wikipedia.org/wiki/Flammarion_engraving
-	^^
-	music^_Nils Frahm^_Screws^_http://screws.nilsfrahm.com/
-	^^
-	https://en.wikipedia.org/wiki/Tardigrade
-
-So if you want to edit the file in your editor of choice, beware that your editor might not display those characters, or might display them weirdly. In emacs, you can enter the record separator with:
-
-	C-q 036 <RET>
-
-And the unit separator with:
-
-	C-q 037 <RET>
 
 
 
