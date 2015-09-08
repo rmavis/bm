@@ -16,9 +16,9 @@
 
 
 
-* Edit [0/2]
-  - [ ] Write
-  - [ ] Debug
+* Edit [2/2]
+  - [X] Write
+  - [X] Debug
 
 
 
@@ -71,5 +71,5 @@
 
 
 
-* Misc [0/1]
-  - [ ] Remove MAR from line
+* Misc [1/1]
+  - [X] Remove MAR from line

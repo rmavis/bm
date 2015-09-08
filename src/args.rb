@@ -69,15 +69,17 @@ module Star
           elsif ((x == "-p") || (x == "--copy"))
             ret[:act] = :copy
 
-          elsif ((x == "-r") || (x == "--readme") ||
-                 (x == "-h") || (x == "--help"))
+          elsif ((x == "-r") || (x == "--readme"))
+            ret[:act], wantargs = :readme, nil
+
+          elsif ((x == "-rx") || (x == "-xr"))
+            ret[:act], wantargs = :readx, nil
+
+          elsif ((x == "-h") || (x == "--help"))
             ret[:act], wantargs = :help, nil
 
           elsif ((x == "-hx") || (x == "-xh"))
             ret[:act], wantargs = :helpx, nil
-
-          elsif ((x == "-rx") || (x == "-xr"))
-            ret[:act], wantargs = :readx, nil
 
           elsif ((x == "-s") || (x == "--strict"))
             ret[:filtmode] = :strict

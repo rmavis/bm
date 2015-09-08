@@ -91,14 +91,6 @@ module Star
 
     def self.defaults
       {
-       :edit_head => {
-          :key => 'edit_header_message',
-          :val => Star::Config.default_edit_head
-        },
-       :edit_space => {
-          :key => 'edit_extra_space',
-          :val => Star::Config.default_edit_space
-        },
         :file_name => {
           :key => 'file_name',
           :val => Star::Config.store_file
@@ -110,6 +102,14 @@ module Star
         :pipe_to => {
           :key => 'pipe_to',
           :val => Star::Config.default_pipe_to
+        },
+       :edit_head => {
+          :key => 'edit_header_message',
+          :val => Star::Config.default_edit_head
+        },
+       :edit_space => {
+          :key => 'edit_extra_space',
+          :val => Star::Config.default_edit_space
         }
       }
     end

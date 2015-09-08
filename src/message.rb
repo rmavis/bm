@@ -141,8 +141,8 @@ END
         "If you feel list customizing #{"star".command}, you can edit the config file. It's a YAML file located at #{Star::Config.config_file}. There are five entries:".form_p(Star::Message.p_indent, nil) +
         "file_name: path/to/store/file".form_p(Star::Message.p_indent * 2, nil) +
         "filter_mode: either `strict' or `loose'".form_p(Star::Message.p_indent * 2, nil) +
-        "pipe_to: either `copy' or `open'".form_p(Star::Message.p_indent * 2) +
-        "edit_header_message: true or false".form_p(Star::Message.p_indent * 2) +
+        "pipe_to: either `copy' or `open'".form_p(Star::Message.p_indent * 2, nil) +
+        "edit_header_message: true or false".form_p(Star::Message.p_indent * 2, nil) +
         "edit_extra_space: true or false".form_p(Star::Message.p_indent * 2) +
 
         "Here's an example:".form_p(Star::Message.p_indent, nil)
@@ -157,12 +157,54 @@ END
 
         "The metadata consists of two timestamps, indicating the times you created and last selected the associated value, and a running tally of the number of times you've selected that value.".form_p(Star::Message.p_indent) +
 
-        "So if you want to edit the file in your editor of choice, do so with care. And beware that your editor might not display those non-printing characters or might display them weirdly. In #{"emacs".command}, you can enter the group separator with:".form_p(Star::Message.p_indent , nil) +
+        "The store file is plain text, so you could edit it in your editor of choice. But if you do, do so with care. And beware that your editor might not display those non-printing characters or might display them weirdly. In #{"emacs".command}, you can enter the group separator with:".form_p(Star::Message.p_indent , nil) +
         "C-q 035 <RET>".form_p(Star::Message.p_indent * 2, nil) +
         "And the record separator with:".form_p(Star::Message.p_indent , nil) +
         "C-q 036 <RET>".form_p(Star::Message.p_indent * 2, nil) +
         "And the unit separator with:".form_p(Star::Message.p_indent , nil) +
-        "C-q 037 <RET>".form_p(Star::Message.p_indent * 2)
+        "C-q 037 <RET>".form_p(Star::Message.p_indent * 2) +
+
+        "Or you can use the `-e' option to edit entries. This is recommended.".form_p(Star::Message.p_indent) +
+
+        "$ star -e music".form_p(Star::Message.p_indent * 2) +
+
+        "will create a temp file containing a list of your entries tagged \"music\" and open that file in your editor. You can edit, add, or delete entries in that file, which will look something like this:".form_p(Star::Message.p_indent)
+
+      ret << <<END
+# STAR will read this file and update its store with the new values.
+# 
+# An entry in the store file includes two lines in this file, so STAR
+# will expect to read lines from this file in pairs that look like:
+#
+#   1) http://settlement.arc.nasa.gov/70sArtHiRes/70sArt/art.html
+#      Tags: art, NASA, space
+#
+# Those parts are:
+# - a number followed by a closing parenthesis
+# - the entry, being the string that gets copied or opened
+# - the tags, being a comma-separated list
+#
+# You can remove entries from the store file by deleting the line
+# pairs, and you can add entries by creating more.
+#
+# Lines that start with a pound sign will be ignored.
+
+1) http://adambryanbaumwiltzie.bandcamp.com/
+   Tags: Adam Wiltzie, listen, music
+
+2) http://screws.nilsfrahm.com/
+   Tags: Nils Frahm, Screws, music
+
+3) https://soundcloud.com/deadbeat
+   Tags: Deadbeat, dub techno, music
+
+4) https://soundcloud.com/modernlove/sets/andy-stott-luxury-problems-1
+   Tags: Andy Stott, Luxury Problems, music
+
+5) https://soundcloud.com/user18081971
+   Tags: aphex twin, listen, music
+
+END
 
       return ret
     end

@@ -105,6 +105,9 @@ module Star
       elsif self.act == :new
         Star::Line.new_from_args(self)
 
+      elsif self.act == :readme
+        puts Star::Message.readme
+
       elsif self.act == :readx
         puts Star::Message.readme + "\n" + Star::Message.extra_notes
 
