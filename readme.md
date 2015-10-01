@@ -4,7 +4,19 @@ Simple Text Archiving and Retrieving
 
 `star` is a simple tool for saving and retrieving bits of text. You could use it to save bookmarks, hard-to-remember commands, complex emoticons, stuff like that. It's similar to the most excellent [boom][] by Zach Holman but suits me better.
 
-Installation is very easy. There's a demo, so you can try it before you take the plunge and symlink to your `/usr/local/bin`. And its only external dependencies come built in with OS X.
+
+## Installation
+
+Installation is very easy:
+
+1. Clone the repo.
+2. `cd` into the `star` directory.
+3. Symlink the `star.rb` executable somewhere in your `$PATH`, such as `/usr/local/bin`: `sudo ln -s star.rb /usr/local/bin/star`.
+
+Its only dependencies come built in with OS X.
+
+
+## Usage
 
 So say you want to save Wikipedia's page on Tardigrades. You would enter:
 
@@ -18,7 +30,7 @@ And, assuming you haven't saved anything else that includes the word "Tardigrade
 
 	$ star -o Tardigrade
 
-and the URL will be opened in your default browser.
+and the URL will be opened in your browser.
 
 To help with retrieving things later, you can tag can your entries by entering words before the value you want to copy or open. So say you want to tag Wikipedia's page on the Flammarion Engraving with "wiki" and "art":
 
@@ -36,7 +48,7 @@ To see all your entries tagged either "wiki" or "art":
 
 	$ star -l wiki art
 
-If multiple entries match the given tags, then you'll be shown a numbered list of them and prompted for the one you want. The text on the numbered line will be `pbcopy`'d or `open`ed. Tags are listed beneath the numbered line. The lists look something like this:
+If multiple entries match the given tags, you'll be shown a numbered list of them and prompted to enter the number of the one you want. The text on the numbered line will be `pbcopy`'d or `open`ed. Tags are listed beneath the numbered line. The lists look something like this:
 
     1) http://printingcode.runemadsen.com/lecture-intro/
        Tags: art, computers, design, generative, history
@@ -53,13 +65,11 @@ If multiple entries match the given tags, then you'll be shown a numbered list o
 
 But if there's only one match, you'll skip the browsing step.
 
-`star` saves your text in a plain text file, by default at `~/.config/star/store` but you can change that.
-
-You can edit, add, and remove values in your editor of choice with:
+You can edit, add, and remove entries in your editor of choice with:
 
     $ star -e
 
-You can also delete values with:
+You can also delete entries with:
 
 	$ star -d
 
@@ -70,6 +80,20 @@ To see a list of commands:
 And to run a little demo:
 
 	$ star --demo
+
+
+## Storage & configuration
+
+`star` saves your text in a plain text file, by default at `~/.config/star/store` but you can change that.
+
+Configuration options are read from a YAML file, `~/.config/star/config.yaml`, which lists key-value pairs. Here's a sample:
+
+    file_name: ~/.config/star/store
+    filter_mode: strict
+    pipe_to: copy
+
+If you prefer the loose filter mode, change the `filter_mode` to `loose`. And if you'd prefer the values to be opened by default, then change `copy` to `open`.
+
 
 
 

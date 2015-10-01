@@ -1,3 +1,13 @@
+* Labels [0/6]
+  - [ ] Read labels from args
+  - [ ] Save labels to file
+  - [ ] Search labels
+  - [ ] Display labels in editing file
+  - [ ] Update labels from editing file
+  - [ ] Display labels in list?
+
+
+
 * Read [2/3]
   - [X] Write
   - [-] Debug
@@ -65,9 +75,9 @@
 
 
 
-* Documentation [0/2]
-  - [ ] Rewrite messages
-  - [ ] Rewrite readme.md
+* Documentation [2/2]
+  - [X] Rewrite messages
+  - [X] Rewrite readme.md
 
 
 
