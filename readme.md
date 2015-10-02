@@ -91,6 +91,7 @@ Configuration options are read from a YAML file, `~/.config/star/config.yaml`, w
     file_name: ~/.config/star/store
     filter_mode: strict
     pipe_to: copy
+    editor: emacsclient
 
 If you prefer the loose filter mode, change the `filter_mode` to `loose`. And if you'd prefer the values to be opened by default, then change `copy` to `open`.
 
