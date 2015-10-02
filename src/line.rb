@@ -154,20 +154,21 @@ module Star
             match_mode = :loose
           end
 
+          str_dc = (self.val.str.is_a?(String)) ? self.val.str.downcase : nil
+          ttl_dc = (self.val.title.is_a?(String)) ? self.val.title.downcase : nil
+
           filts.each do |filt|
             filt_dc = filt.downcase
             regex = pattern_brackets + filt_dc + pattern_brackets
 
-            if self.val.str.is_a?(String) &&
-               ((self.val.str == filt_dc) || (self.val.str.downcase.match(regex)))
+            if str_dc.is_a?(String) && ((str_dc == filt_dc) || (str_dc.match(regex)))
               mar = filt.length.to_f / self.val.str.length.to_f
               self.add_mar(pos, mar)
             else
               self.add_mar(pos)
             end
 
-            if self.val.title.is_a?(String) &&
-               ((self.val.title == filt_dc) || (self.val.title.downcase.match(regex)))
+            if ttl_dc.is_a?(String) && ((ttl_dc == filt_dc) || (ttl_dc.match(regex)))
               mar = filt.length.to_f / self.val.title.length.to_f
               self.add_mar(pos, mar)
             end
