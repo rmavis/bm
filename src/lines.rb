@@ -349,7 +349,7 @@ module Star
 
           # - wait while edit
           # puts "Opening temp file in editor"
-          check = system(ENV['EDITOR'], tmp_name)
+          check = system(self.hub.config.editor, tmp_name)
 
           if check
             # - read tmp file

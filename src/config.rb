@@ -56,6 +56,14 @@ module Star
       true
     end
 
+    def self.default_editor
+      if ENV.has_key?('EDITOR')
+        return Star::Config.check_editor(ENV['EDITOR'])
+      else
+        return 'vi'
+      end
+    end
+
 
     def self.default_config_file
       defs, ret = Star::Config.defaults, ''
@@ -74,17 +82,29 @@ module Star
 
 
     def self.filter_mode_sym( chk )
-      chk = chk.to_sym if chk.is_a? String
+      chk = chk.to_sym if chk.is_a?(String)
       ret = Star::Config.default_filter_mode
       ret = chk if Star::Config.valid_filter_mode?(chk)
       return ret
     end
 
     def self.pipe_to_sym( chk )
-      chk = chk.to_sym if chk.is_a? String
+      chk = chk.to_sym if chk.is_a?(String)
       ret = Star::Config.default_pipe_to
       ret = chk if Star::Config.valid_pipe_to?(chk)
       return ret
+    end
+
+
+    def self.check_editor( chk )
+      # safe = chk.gsub(/[;&>\|]/, '')
+      out = `which "#{chk}"`
+
+      if out.is_a?(String) && !out.strip.empty?
+        return out.chomp.strip
+      else
+        return Star::Config.default_editor
+      end
     end
 
 
@@ -103,13 +123,17 @@ module Star
           :key => 'pipe_to',
           :val => Star::Config.default_pipe_to
         },
-       :edit_head => {
+        :edit_head => {
           :key => 'edit_header_message',
           :val => Star::Config.default_edit_head
         },
-       :edit_space => {
+        :edit_space => {
           :key => 'edit_extra_space',
           :val => Star::Config.default_edit_space
+        },
+        :editor => {
+          :key => 'editor',
+          :val => Star::Config.default_editor
         }
       }
     end
@@ -133,7 +157,9 @@ module Star
             # Need to ensure that the values below are valid.
             #
 
-            if sym == :edit_head
+            if sym == :editor
+              defs[sym] = Star::Config.check_editor(chk)
+            elsif sym == :edit_head
               defs[sym] = (chk == true) ? true : nil
             elsif sym == :edit_space
               defs[sym] = (chk == true) ? true : nil
@@ -148,7 +174,7 @@ module Star
             end
 
           else
-            # puts "key not in config file: #{h[:key]}"
+            defs[sym] = h[:val]
           end
 
         end
@@ -171,6 +197,10 @@ module Star
     attr_reader :h
 
 
+
+    def editor
+      self.h[:editor]
+    end
 
     def edit_head?
       if self.h[:edit_head] then true else nil end
