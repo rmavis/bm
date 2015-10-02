@@ -1,10 +1,10 @@
-* Labels [0/6]
-  - [ ] Read labels from args
-  - [ ] Save labels to file
-  - [ ] Search labels
-  - [ ] Display labels in editing file
+* Labels [5/6]
+  - [X] Read labels from args
+  - [X] Save labels to file
+  - [X] Search labels
+  - [X] Display labels in editing file
   - [ ] Update labels from editing file
-  - [ ] Display labels in list?
+  - [X] Display labels in list?
 
 
 

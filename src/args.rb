@@ -35,8 +35,9 @@ module Star
       else
         wantargs = true
 
-        while args[0].is_a?(String) && args[0].match(/^-+[a-z]+/)
-          x = args[0].downcase.strip
+        args.each do |arg|
+          # while args[0].is_a?(String) && args[0].match(/^-+[a-z]+/)
+          x = arg.downcase.strip
 
           if ((x == "-a") || (x == "--all"))
             wantargs = nil
@@ -88,18 +89,23 @@ module Star
             ret[:act] = :tags
 
           elsif ((x == "-x") || (x == "--examples"))
-            ret[:act] = :examples
+            ret[:act], wantargs = :examples, nil
+
+          elsif (title = arg.match(/^-+title:(.+)$/))
+            ret[:args].push({ :title => title[1] }) if wantargs
 
           elsif (x.match(/^-+[a-z]+/))
             ret[:act] = :err
+
+          else
+            ret[:args].push(arg) if wantargs
           end
 
-          args.delete_at(0)
           break if ret[:act] == :demo
         end
 
         ret[:act] = :read if ret[:act].nil?
-        ret[:args] = args if wantargs
+        # ret[:args] = args if wantargs
       end
 
       return ret

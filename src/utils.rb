@@ -25,8 +25,10 @@ module Star
     end
 
 
-    def self.escape( str = self.line )
+
+    def self.escape( str = '' )
       ret = str
+
       Star::Utils.escapes.each do |esc|
         ret = ret.gsub(esc){ "\\#{esc}" }
       end
@@ -35,8 +37,10 @@ module Star
     end
 
 
-    def self.clean( str = self.line )
+
+    def self.clean( str = '' )
       ret = str
+
       Star::Utils.escapes.each do |esc|
         ret = ret.gsub("\\#{esc}"){ esc }
       end

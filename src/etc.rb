@@ -5,6 +5,24 @@
 
 
 class String
+
+
+  def mode_match( mode, pattern )
+    matches = nil
+
+    if (mode.is_a?(Symbol) && (pattern.is_a?(Regexp) || pattern.is_a?(String)))
+      if mode == :loose
+        matches = (self.match(pattern)) ? true : nil
+      else
+        matches = (self == pattern) ? true : nil
+      end
+    end
+
+    return matches
+  end
+
+
+
   def command;  self.bold end
   def header;   self.upcase.bold end
 

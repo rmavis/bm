@@ -125,6 +125,11 @@ module Star
 
         io.puts("#{pre} #{Star::Utils.clean(line.val.str)}")  # #{line.mar}
 
+        if line.val.title.is_a?(String)
+          spc = ' ' * (pre.length)
+          io.puts("#{spc} Title: #{Star::Utils.clean(line.val.title)}")
+        end
+
         if !line.tags.pool.empty?
           spc = ' ' * (pre.length)
           io.puts("#{spc} Tags: #{Star::Utils.clean(line.tags.pool.join(', '))}")
@@ -241,6 +246,7 @@ module Star
             catch(:out) do
               selections.each do |sel_l|
                 if ((l_obj.val.str == sel_l.val.str) &&
+                    (l_obj.val.title == sel_l.val.title) &&
                     (l_obj.tags.pool == sel_l.tags.pool))
                   # puts "Comparing #{sel_l.val.str} to #{l_obj.val.str}?"
                   if sel_l.del
@@ -249,7 +255,7 @@ module Star
                     out_s = nil
 
                   else
-                    if sel_l.val.swap && sel_l.tags.swap
+                    if sel_l.val.swap_str && sel_l.tags.swap
                       out_s = sel_l.to_s(true, true)
                     else
                       out_s = sel_l.to_s(true)
@@ -310,7 +316,9 @@ module Star
 
     def clean_args( args = self.hub.args )
       # They are escaped because they are stored escaped.
-      args.collect! { |f| Star::Utils.escape(f).downcase }
+      # And check if it's a string because, if a label is present,
+      # it will be a hash.
+      args.collect! { |f| Star::Utils.escape(f).downcase if f.is_a?(String) }
       return args.uniq
     end
 
@@ -389,6 +397,11 @@ module Star
           if pair_up && entry.is_a?(Hash)
             entry[:tags] = parts[1].split(',').sort.collect { |t| t.strip }
           end
+
+        elsif parts = line.match(/\A[ \t]*(?:Title:[ \t]*)(.+)\Z/)
+          if pair_up && entry.is_a?(Hash)
+            entry[:title] = parts[1].strip
+          end
         end
 
         if pair_up &&
@@ -431,8 +444,10 @@ module Star
 
       edits.each do |edit|
         if ret[edit[:index]]
-          ret[edit[:index]].val.swap = edit[:value]
-# puts "Setting value swap: #{ret[edit[:index]].val.swap}"
+          ret[edit[:index]].val.swap_str = edit[:value]
+# puts "Setting value swap: #{ret[edit[:index]].val.swap_str}"
+          ret[edit[:index]].val.swap_title = edit[:title] if edit.has_key?(:title)
+# puts "Setting title swap: #{ret[edit[:index]].val.swap_title}"
           ret[edit[:index]].tags.swap = edit[:tags]
 # puts "Setting tags swap: #{ret[edit[:index]].tags.swap}"
         # metadata?
@@ -440,7 +455,11 @@ module Star
         else
 # puts "Creating new line with value: #{edit[:value]}"
           line = Star::Line.new
-          line.fill_from_array(edit[:tags] + [edit[:value]])
+          if edit.has_key?(:title)
+            line.fill_from_array(edit[:tags] + [edit[:value]] + [{:title => edit[:title]}])
+          else
+            line.fill_from_array(edit[:tags] + [edit[:value]])
+          end
           ret.push(line)
         end
       end

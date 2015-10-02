@@ -64,13 +64,13 @@ module Star
     def to_s( add_sep = nil, use_swaps = nil )
       if use_swaps
         str =
-          self.val.swap + Star::Utils.rec_sep +
+          self.val.to_s(use_swaps) + Star::Utils.rec_sep +
           self.tags.to_s(use_swaps) + Star::Utils.rec_sep +
           self.meta.to_s
 
       else
         str =
-          self.val.str + Star::Utils.rec_sep +
+          self.val.to_s + Star::Utils.rec_sep +
           self.tags.to_s + Star::Utils.rec_sep +
           self.meta.to_s
       end
@@ -87,7 +87,7 @@ module Star
 
       if arr.is_a?(Array)
         if arr.length == 3
-          self.val.str = arr[0].strip
+          self.val.from_s(arr[0])
           self.tags.from_s(arr[1])
           self.meta.from_s(arr[2])
 
@@ -114,8 +114,8 @@ module Star
 
     def fill_from_array( arr = [ ] )
       if arr.is_a?(Array) && !arr.empty?
-        self.val.str = arr.pop.strip
-        self.tags.pool = arr
+        tags = self.val.from_arr!(arr)
+        self.tags.pool = tags
         self.meta.ini
 
       else
@@ -147,54 +147,45 @@ module Star
           pos = 0
 
           if incluv.nil?  # Strict.
-            filts.each do |filt|
-
-              regex = '\W' + filt.downcase + '\W'
-              if self.val.str.downcase.match(regex)
-                mar = filt.length.to_f / self.val.str.length.to_f
-                self.add_mar(pos, mar)
-              end
-
-              if !self.tags.pool.empty?
-                self.tags.pool.each do |tag|
-                  if tag.downcase == filt
-                    mar = filt.length.to_f / tag.length.to_f
-                    self.add_mar(pos, mar)
-                  else
-                    self.add_mar(pos)
-                  end
-                end
-              end
-
-              pos += 1
-            end
-
+            pattern_brackets = '\W'
+            match_mode = :strict
           else  # Loose.
-            filts.each do |filt|
-              regex = '.*' + filt.downcase + '.*'
+            pattern_brackets = '.*'
+            match_mode = :loose
+          end
 
-              if self.val.str.downcase.match(regex)
-                mar = filt.length.to_f / self.val.str.length.to_f
-                # puts "val matches: #{self.val.str} (#{mar})"
-                self.add_mar(pos, mar)
-              end
+          filts.each do |filt|
+            filt_dc = filt.downcase
+            regex = pattern_brackets + filt_dc + pattern_brackets
 
-              if !self.tags.pool.empty?
-                self.tags.pool.each do |tag|
-                  if tag.downcase.match(regex)
-                    mar = filt.length.to_f / tag.length.to_f
-                    # puts "tag matches: #{tag} (#{mar})"
-                    self.add_mar(pos, mar)
-
-                  else
-                    self.add_mar(pos)
-                  end
-                end
-              end
-
-              pos += 1
+            if self.val.str.is_a?(String) &&
+               ((self.val.str == filt_dc) || (self.val.str.downcase.match(regex)))
+              mar = filt.length.to_f / self.val.str.length.to_f
+              self.add_mar(pos, mar)
+            else
+              self.add_mar(pos)
             end
 
+            if self.val.title.is_a?(String) &&
+               ((self.val.title == filt_dc) || (self.val.title.downcase.match(regex)))
+              mar = filt.length.to_f / self.val.title.length.to_f
+              self.add_mar(pos, mar)
+            end
+
+            if !self.tags.pool.empty?
+              self.tags.pool.each do |tag|
+                test = (match_mode == :strict) ? filt : regex
+
+                if tag.downcase.mode_match(match_mode, test)
+                  mar = filt.length.to_f / tag.length.to_f
+                  self.add_mar(pos, mar)
+                else
+                  self.add_mar(pos)
+                end
+              end
+            end
+
+            pos += 1
           end
 
           if self.match_lim?(incluv)
